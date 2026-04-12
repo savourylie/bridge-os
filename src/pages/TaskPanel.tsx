@@ -9,7 +9,7 @@ import {
   RISK_LEVEL_CONFIG,
   type TaskHeaderData,
   type TaskMetaData,
-  type TaskStatus,
+  type TaskState,
   type RiskLevel,
 } from "@/components/ui/task-panel"
 import { StatusCapsule } from "@/components/ui/status-capsule"
@@ -21,6 +21,7 @@ import {
   DraftPlan,
   type DraftPlanData,
 } from "@/components/ui/draft-plan"
+import { TASK_STATES } from "@/state"
 
 // ---------------------------------------------------------------------------
 // Mock Data
@@ -32,7 +33,7 @@ const MOCK_HEADER: TaskHeaderData = {
 }
 
 const MOCK_META: TaskMetaData = {
-  status: "pending",
+  status: "planning",
   risk: "medium",
   scope: "Downloads only",
 }
@@ -57,13 +58,7 @@ const MOCK_PLAN: DraftPlanData = {
   planState: "ready",
 }
 
-const ALL_STATUSES: TaskStatus[] = [
-  "not_started",
-  "pending",
-  "in_progress",
-  "completed",
-  "failed",
-]
+const ALL_STATUSES: TaskState[] = [...TASK_STATES]
 
 const ALL_RISKS: RiskLevel[] = ["low", "medium", "high"]
 
@@ -74,7 +69,7 @@ const ALL_RISKS: RiskLevel[] = ["low", "medium", "high"]
 export default function TaskPanelPage() {
   // --- Section 1: Interactive Demo ---
   const [interactiveOpen, setInteractiveOpen] = useState(false)
-  const [activeStatus, setActiveStatus] = useState<TaskStatus>("pending")
+  const [activeStatus, setActiveStatus] = useState<TaskState>("planning")
   const [activeRisk, setActiveRisk] = useState<RiskLevel>("medium")
 
   const interactiveMeta: TaskMetaData = {
@@ -247,7 +242,7 @@ export default function TaskPanelPage() {
         <section className="mb-16">
           <h2 className="type-h2 text-ink mb-6">TaskMetaRow All States</h2>
           <p className="type-body text-body-text mb-6">
-            All five task statuses and three risk levels. Status values use
+            Canonical task states and three risk levels. Status values use
             state-specific colors with a dot indicator.
           </p>
 
@@ -265,7 +260,7 @@ export default function TaskPanelPage() {
                         style={{ backgroundColor: config.dotColor }}
                       />
                       <span className="type-label text-subtle w-24">
-                        {status.toUpperCase().replace("_", " ")}
+                        {status.toUpperCase().replace(/_/g, " ")}
                       </span>
                       <span className={config.className}>{config.label}</span>
                     </div>
@@ -309,7 +304,8 @@ export default function TaskPanelPage() {
             <div className="flex items-center gap-4">
               <span className="type-label text-subtle">CLICK TO TOGGLE</span>
               <StatusCapsule
-                state="planning"
+                conversationState="intent_locked"
+                executionState="drafting_plan"
                 onClick={() => setCapsuleOpen(!capsuleOpen)}
               />
             </div>
@@ -369,7 +365,7 @@ export default function TaskPanelPage() {
               summary:
                 "Testing scroll behavior with content that exceeds viewport height.",
             }}
-            meta={{ status: "in_progress", risk: "low", scope: "Test only" }}
+            meta={{ status: "executing", risk: "low", scope: "Test only" }}
           >
             <div className="flex flex-col gap-4">
               {Array.from({ length: 15 }, (_, i) => (

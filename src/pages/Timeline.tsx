@@ -7,23 +7,15 @@ import {
   Timeline,
   STEP_STATUS_CONFIG,
   type TimelineData,
-  type StepStatus,
+  type StepState,
 } from "@/components/ui/timeline"
+import { STEP_STATES } from "@/state"
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-const ALL_STEP_STATUSES: StepStatus[] = [
-  "pending",
-  "running",
-  "waiting_approval",
-  "completed",
-  "failed",
-  "skipped",
-  "blocked",
-  "reverted",
-]
+const ALL_STEP_STATUSES: StepState[] = [...STEP_STATES]
 
 // ---------------------------------------------------------------------------
 // Mock Data
@@ -78,7 +70,7 @@ const MOCK_COMPLETED: TimelineData = {
 
 export default function TimelinePage() {
   // --- Interactive Demo state ---
-  const [stepStatuses, setStepStatuses] = useState<StepStatus[]>(
+  const [stepStatuses, setStepStatuses] = useState<StepState[]>(
     MOCK_INTERACTIVE.steps.map((s) => s.status)
   )
 

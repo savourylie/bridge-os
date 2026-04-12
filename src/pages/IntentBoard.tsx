@@ -7,8 +7,9 @@ import {
   IntentBoard,
   EXECUTION_STATUS_CONFIG,
   type IntentData,
-  type ExecutionStatus,
+  type ExecutionState,
 } from "@/components/ui/intent-board"
+import { EXECUTION_STATES } from "@/state"
 
 // ---------------------------------------------------------------------------
 // Mock Data
@@ -39,15 +40,7 @@ const MOCK_WITH_AMBIGUITY: IntentData = {
   ],
 }
 
-const ALL_STATUSES: ExecutionStatus[] = [
-  "not_started",
-  "planning",
-  "waiting_approval",
-  "executing",
-  "paused",
-  "completed",
-  "failed",
-]
+const ALL_STATUSES: ExecutionState[] = [...EXECUTION_STATES]
 
 // ---------------------------------------------------------------------------
 // Page
@@ -60,7 +53,7 @@ export default function IntentBoardPage() {
   const [showConstraints, setShowConstraints] = useState(true)
   const [showExclusions, setShowExclusions] = useState(true)
   const [showQuestions, setShowQuestions] = useState(false)
-  const [activeStatus, setActiveStatus] = useState<ExecutionStatus>("not_started")
+  const [activeStatus, setActiveStatus] = useState<ExecutionState>("not_started")
 
   const interactiveData: IntentData = {
     goal: showGoal ? MOCK_FULL.goal : undefined,
@@ -115,7 +108,10 @@ export default function IntentBoardPage() {
           exclusions: "Ignore hidden files and system files",
         })),
       () =>
-        setSimData((prev) => ({ ...prev, executionStatus: "planning" as const })),
+        setSimData((prev) => ({
+          ...prev,
+          executionStatus: "drafting_plan" as const,
+        })),
     ]
 
     let idx = 0

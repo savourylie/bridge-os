@@ -5,19 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Panel } from "@/components/ui/panel"
 import {
   VoiceBar,
-  TURN_STATE_CONFIG,
-  type TurnState,
+  getVoiceBarStateConfig,
 } from "@/components/ui/voice-bar"
-
-const ALL_STATES: TurnState[] = [
-  "idle",
-  "listening",
-  "user_holding_turn",
-  "ai_speaking",
-  "awaiting_clarification",
-  "barge_in_detected",
-  "muted",
-]
+import { CONVERSATION_STATES, type ConversationState } from "@/state"
 
 const MOCK_TRANSCRIPT_PHRASES = [
   "Computer,",
@@ -42,7 +32,6 @@ function useAmplitudeSimulation(active: boolean) {
     let t = 0
     const tick = () => {
       t += 0.05
-      // Combine two sine waves for organic-feeling pulsation
       const value =
         0.5 +
         0.3 * Math.sin(t * 2.1) +
@@ -59,7 +48,7 @@ function useAmplitudeSimulation(active: boolean) {
 }
 
 export default function VoiceBarPage() {
-  const [activeState, setActiveState] = useState<TurnState>("idle")
+  const [activeState, setActiveState] = useState<ConversationState>("idle")
   const [manualAmplitude, setManualAmplitude] = useState<number | null>(null)
   const [isMuted, setIsMuted] = useState(false)
 
@@ -69,17 +58,11 @@ export default function VoiceBarPage() {
   const transcriptTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const simulatedAmplitude = useAmplitudeSimulation(
-    (activeState === "listening" ||
-      activeState === "user_holding_turn" ||
-      activeState === "awaiting_clarification") &&
-      manualAmplitude === null
+    getVoiceBarStateConfig(activeState).barAnimating && manualAmplitude === null,
   )
 
   const currentAmplitude =
     manualAmplitude !== null ? manualAmplitude : simulatedAmplitude
-
-  // Derive effective turn state (mute overrides)
-  const effectiveState: TurnState = isMuted ? "muted" : activeState
 
   const handleMuteToggle = useCallback(() => {
     setIsMuted((prev) => !prev)
@@ -89,6 +72,8 @@ export default function VoiceBarPage() {
     transcriptIndex >= 0
       ? MOCK_TRANSCRIPT_PHRASES[transcriptIndex]
       : undefined
+
+  const activeConfig = getVoiceBarStateConfig(activeState, isMuted)
 
   const startTranscript = useCallback(() => {
     setTranscriptIndex(-1)
@@ -105,7 +90,7 @@ export default function VoiceBarPage() {
       } else {
         transcriptTimerRef.current = setTimeout(() => {
           setIsTranscriptPlaying(false)
-          setActiveState("awaiting_clarification")
+          setActiveState("clarifying")
         }, 600)
       }
     }
@@ -119,7 +104,6 @@ export default function VoiceBarPage() {
     setActiveState("idle")
   }, [])
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (transcriptTimerRef.current) clearTimeout(transcriptTimerRef.current)
@@ -137,8 +121,8 @@ export default function VoiceBarPage() {
           <h1 className="type-h1 text-ink mt-4">VoiceBar</h1>
           <p className="type-body text-body-text mt-2">
             Live voice interaction strip — displays transcript, voice activity
-            indicator, turn state, and mute controls within the conversational
-            corridor.
+            indicator, canonical conversation state, and a separate mute
+            override within the conversational corridor.
           </p>
           <p className="type-caption text-subtle mt-1">
             Source: <span className="type-code">TICKET-006</span>
@@ -149,44 +133,42 @@ export default function VoiceBarPage() {
         <section className="mb-16">
           <h2 className="type-h2 text-ink mb-6">Interactive Demo</h2>
           <p className="type-body text-body-text mb-6">
-            Select a turn state and adjust amplitude. The voice activity bar,
-            transcript, and controls update to match.
+            Select a conversation state and adjust amplitude. Mute is modeled
+            separately from the conversation state machine.
           </p>
 
           <Panel surface="cool" padding="spacious">
             <div className="mb-6 flex justify-center">
               <VoiceBar
-                turnState={effectiveState}
+                conversationState={activeState}
+                muted={isMuted}
                 amplitude={currentAmplitude}
                 transcript={currentTranscript}
                 onMuteToggle={handleMuteToggle}
               />
             </div>
 
-            {/* State buttons */}
             <div className="flex flex-wrap gap-2">
-              {ALL_STATES.map((s) => (
+              {CONVERSATION_STATES.map((state) => (
                 <Button
-                  key={s}
-                  variant={activeState === s ? "default" : "outline"}
+                  key={state}
+                  variant={activeState === state ? "default" : "outline"}
                   size="sm"
                   className={
-                    activeState === s
+                    activeState === state
                       ? "cursor-pointer bg-brand text-white hover:bg-brand-hover"
                       : "cursor-pointer"
                   }
                   onClick={() => {
-                    setActiveState(s)
-                    if (s === "muted") setIsMuted(true)
-                    else setIsMuted(false)
+                    setActiveState(state)
+                    setIsMuted(false)
                   }}
                 >
-                  {s.replace(/_/g, " ")}
+                  {state.replace(/_/g, " ")}
                 </Button>
               ))}
             </div>
 
-            {/* Amplitude slider */}
             <div className="mt-4 flex items-center gap-3 border-t border-divider pt-4">
               <span className="type-label text-subtle">AMPLITUDE</span>
               <input
@@ -210,66 +192,73 @@ export default function VoiceBarPage() {
               </Button>
             </div>
 
-            {/* Metadata */}
             <div className="mt-3 border-t border-divider pt-3">
               <p className="type-caption text-subtle">
-                State:{" "}
-                <span className="type-code">{effectiveState}</span>
+                Conversation:{" "}
+                <span className="type-code">{activeState}</span>
+                {" "}&middot; Muted:{" "}
+                <span className="type-code">{isMuted ? "true" : "false"}</span>
                 {" "}&middot; Amplitude:{" "}
                 <span className="type-code">
                   {Math.round(currentAmplitude * 100)}%
                 </span>
                 {" "}&middot; Bar opacity:{" "}
-                <span className="type-code">
-                  {TURN_STATE_CONFIG[effectiveState].barOpacity}
-                </span>
+                <span className="type-code">{activeConfig.barOpacity}</span>
                 {" "}&middot; Animating:{" "}
                 <span className="type-code">
-                  {TURN_STATE_CONFIG[effectiveState].barAnimating
-                    ? "yes"
-                    : "no"}
+                  {activeConfig.barAnimating ? "yes" : "no"}
                 </span>
               </p>
             </div>
           </Panel>
         </section>
 
-        {/* Section 2: All Turn States */}
+        {/* Section 2: Canonical Conversation States */}
         <section className="mb-16">
-          <h2 className="type-h2 text-ink mb-6">All Turn States</h2>
+          <h2 className="type-h2 text-ink mb-6">Canonical Conversation States</h2>
           <p className="type-body text-body-text mb-6">
-            All 7 turn states rendered simultaneously. Each shows a distinct
-            visual treatment for the voice activity bar.
+            All 7 conversation states rendered with their current bar behavior,
+            followed by a muted preview using the same component.
           </p>
 
           <div className="flex flex-col gap-4">
-            {ALL_STATES.map((s) => (
-              <Panel key={s} surface="cool" padding="compact">
-                <div className="mb-2 flex items-center gap-3">
-                  <span className="type-label text-subtle">{s.replace(/_/g, " ").toUpperCase()}</span>
-                  <span className="type-caption text-subtle">
-                    bar: {TURN_STATE_CONFIG[s].indicatorColor} &middot;
-                    opacity: {TURN_STATE_CONFIG[s].barOpacity} &middot;
-                    {TURN_STATE_CONFIG[s].barAnimating
-                      ? " animating"
-                      : " static"}
-                  </span>
-                </div>
-                <VoiceBar
-                  turnState={s}
-                  amplitude={
-                    TURN_STATE_CONFIG[s].barAnimating ? 0.7 : 0
-                  }
-                  transcript={
-                    s === "idle"
-                      ? undefined
-                      : s === "muted"
+            {CONVERSATION_STATES.map((state) => {
+              const stateConfig = getVoiceBarStateConfig(state)
+
+              return (
+                <Panel key={state} surface="cool" padding="compact">
+                  <div className="mb-2 flex items-center gap-3">
+                    <span className="type-label text-subtle">
+                      {state.replace(/_/g, " ").toUpperCase()}
+                    </span>
+                    <span className="type-caption text-subtle">
+                      bar: {stateConfig.indicatorColor} &middot; opacity:{" "}
+                      {stateConfig.barOpacity} &middot;
+                      {stateConfig.barAnimating ? " animating" : " static"}
+                    </span>
+                  </div>
+                  <VoiceBar
+                    conversationState={state}
+                    amplitude={stateConfig.barAnimating ? 0.7 : 0}
+                    transcript={
+                      state === "idle"
                         ? undefined
                         : "Computer, organize my downloads folder by file type."
-                  }
-                />
-              </Panel>
-            ))}
+                    }
+                  />
+                </Panel>
+              )
+            })}
+
+            <Panel surface="cool" padding="compact">
+              <div className="mb-2 flex items-center gap-3">
+                <span className="type-label text-subtle">MUTED OVERRIDE</span>
+                <span className="type-caption text-subtle">
+                  Uses the idle conversation state with mute enabled.
+                </span>
+              </div>
+              <VoiceBar conversationState="idle" muted />
+            </Panel>
           </div>
         </section>
 
@@ -284,7 +273,8 @@ export default function VoiceBarPage() {
           <Panel surface="cool" padding="spacious">
             <div className="mb-4">
               <VoiceBar
-                turnState={effectiveState}
+                conversationState={activeState}
+                muted={isMuted}
                 amplitude={currentAmplitude}
                 transcript={currentTranscript}
                 onMuteToggle={handleMuteToggle}
@@ -316,15 +306,14 @@ export default function VoiceBarPage() {
         <section className="mb-16">
           <h2 className="type-h2 text-ink mb-6">Mute Toggle</h2>
           <p className="type-body text-body-text mb-6">
-            The mute control toggles between{" "}
-            <span className="type-code">muted</span> and the previous turn
-            state. When muted, the bar dims and the indicator color shifts to
-            muted grey.
+            The mute control overrides the visual state without changing the
+            underlying conversation machine.
           </p>
 
           <Panel surface="cool" padding="spacious">
             <VoiceBar
-              turnState={isMuted ? "muted" : "listening"}
+              conversationState="listening"
+              muted={isMuted}
               amplitude={isMuted ? 0 : 0.7}
               transcript={
                 isMuted

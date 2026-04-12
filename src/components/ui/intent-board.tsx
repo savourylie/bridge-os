@@ -3,19 +3,11 @@ import { AnimatePresence, motion } from "framer-motion"
 
 import { Panel } from "@/components/ui/panel"
 import { cn } from "@/lib/utils"
+import type { ExecutionState } from "@/state"
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
-type ExecutionStatus =
-  | "not_started"
-  | "planning"
-  | "waiting_approval"
-  | "executing"
-  | "paused"
-  | "completed"
-  | "failed"
 
 interface UnresolvedQuestion {
   id: string
@@ -28,7 +20,7 @@ interface IntentData {
   constraints?: string
   exclusions?: string
   unresolvedQuestions?: UnresolvedQuestion[]
-  executionStatus: ExecutionStatus
+  executionStatus: ExecutionState
 }
 
 // ---------------------------------------------------------------------------
@@ -40,10 +32,13 @@ interface ExecutionStatusConfig {
   className: string
 }
 
-const EXECUTION_STATUS_CONFIG: Record<ExecutionStatus, ExecutionStatusConfig> = {
+const EXECUTION_STATUS_CONFIG: Record<ExecutionState, ExecutionStatusConfig> = {
   not_started: { label: "Not started", className: "type-body text-subtle" },
-  planning: { label: "Planning\u2026", className: "type-body text-body-text" },
-  waiting_approval: { label: "Needs approval", className: "type-body text-brand" },
+  drafting_plan: { label: "Planning\u2026", className: "type-body text-body-text" },
+  waiting_confirmation: {
+    label: "Needs approval",
+    className: "type-body text-brand",
+  },
   executing: { label: "Running\u2026", className: "type-body text-body-text" },
   paused: { label: "Paused", className: "type-body text-subtle" },
   completed: { label: "Complete", className: "type-body text-teal" },
@@ -188,7 +183,7 @@ function IntentBoard({
 export { IntentBoard, intentBoardVariants, EXECUTION_STATUS_CONFIG }
 export type {
   IntentData,
-  ExecutionStatus,
+  ExecutionState,
   UnresolvedQuestion,
   IntentBoardProps,
 }

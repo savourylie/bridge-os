@@ -3,26 +3,17 @@ import { AnimatePresence, motion } from "framer-motion"
 
 import { Panel } from "@/components/ui/panel"
 import { cn } from "@/lib/utils"
+import type { StepState } from "@/state"
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type StepStatus =
-  | "pending"
-  | "running"
-  | "waiting_approval"
-  | "completed"
-  | "failed"
-  | "skipped"
-  | "blocked"
-  | "reverted"
-
 interface TimelineStepData {
   id: string
   description: string
   impact?: string
-  status: StepStatus
+  status: StepState
 }
 
 interface TimelineData {
@@ -39,7 +30,7 @@ interface StepStatusConfig {
   className: string
 }
 
-const STEP_STATUS_CONFIG: Record<StepStatus, StepStatusConfig> = {
+const STEP_STATUS_CONFIG: Record<StepState, StepStatusConfig> = {
   pending: {
     label: "Pending",
     dotColor: "var(--color-subtle)",
@@ -197,4 +188,4 @@ function Timeline({ data, density, className, ...props }: TimelineProps) {
 // ---------------------------------------------------------------------------
 
 export { Timeline, timelineVariants, STEP_STATUS_CONFIG }
-export type { TimelineData, TimelineStepData, StepStatus, TimelineProps }
+export type { TimelineData, TimelineStepData, StepState, TimelineProps }

@@ -2,21 +2,11 @@ import { motion } from "framer-motion"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
+import type { ConversationState, ExecutionState } from "@/state"
 
 /* ---------------------------------------------------------------------------
    State types & configuration
    --------------------------------------------------------------------------- */
-
-type CapsuleState =
-  | "idle"
-  | "listening"
-  | "understanding"
-  | "planning"
-  | "waiting_approval"
-  | "executing"
-  | "paused"
-  | "completed"
-  | "failed"
 
 interface StateConfig {
   dotColor: string
@@ -25,16 +15,50 @@ interface StateConfig {
   breathing: boolean
 }
 
-const STATE_CONFIG: Record<CapsuleState, StateConfig> = {
-  idle:             { dotColor: "var(--color-brand)", label: "BridgeOS",          surface: "cool", breathing: true  },
-  listening:        { dotColor: "var(--color-brand)", label: "Listening\u2026",   surface: "warm", breathing: false },
-  understanding:    { dotColor: "var(--color-brand)", label: "Understanding\u2026", surface: "warm", breathing: false },
-  planning:         { dotColor: "var(--color-teal)",  label: "Planning\u2026",    surface: "cool", breathing: false },
-  waiting_approval: { dotColor: "var(--color-brand)", label: "Needs approval",    surface: "cool", breathing: false },
-  executing:        { dotColor: "var(--color-teal)",  label: "Running\u2026",     surface: "cool", breathing: false },
-  paused:           { dotColor: "var(--color-subtle)", label: "Paused",            surface: "cool", breathing: false },
-  completed:        { dotColor: "var(--color-teal)",  label: "Complete",          surface: "warm", breathing: false },
-  failed:           { dotColor: "var(--color-error)", label: "Failed",            surface: "cool", breathing: false },
+const CONVERSATION_STATE_CONFIG: Record<ConversationState, StateConfig> = {
+  idle: { dotColor: "var(--color-brand)", label: "BridgeOS", surface: "cool", breathing: true },
+  listening: { dotColor: "var(--color-brand)", label: "Listening\u2026", surface: "warm", breathing: false },
+  holding_for_more: {
+    dotColor: "var(--color-brand)",
+    label: "Holding for more\u2026",
+    surface: "warm",
+    breathing: false,
+  },
+  clarifying: { dotColor: "var(--color-brand)", label: "Clarifying\u2026", surface: "warm", breathing: false },
+  intent_locked: {
+    dotColor: "var(--color-brand)",
+    label: "Intent locked",
+    surface: "warm",
+    breathing: false,
+  },
+  speaking: { dotColor: "var(--color-brand)", label: "Speaking\u2026", surface: "warm", breathing: false },
+  interrupted: { dotColor: "var(--color-brand)", label: "Interrupted", surface: "warm", breathing: false },
+}
+
+const EXECUTION_STATE_CONFIG: Record<ExecutionState, StateConfig> = {
+  not_started: { dotColor: "var(--color-brand)", label: "BridgeOS", surface: "cool", breathing: true },
+  drafting_plan: { dotColor: "var(--color-teal)", label: "Planning\u2026", surface: "cool", breathing: false },
+  waiting_confirmation: {
+    dotColor: "var(--color-brand)",
+    label: "Needs approval",
+    surface: "cool",
+    breathing: false,
+  },
+  executing: { dotColor: "var(--color-teal)", label: "Running\u2026", surface: "cool", breathing: false },
+  paused: { dotColor: "var(--color-subtle)", label: "Paused", surface: "cool", breathing: false },
+  completed: { dotColor: "var(--color-teal)", label: "Complete", surface: "warm", breathing: false },
+  failed: { dotColor: "var(--color-error)", label: "Failed", surface: "cool", breathing: false },
+}
+
+function getStatusCapsuleConfig(
+  conversationState: ConversationState,
+  executionState: ExecutionState = "not_started",
+): StateConfig {
+  if (executionState !== "not_started") {
+    return EXECUTION_STATE_CONFIG[executionState]
+  }
+
+  return CONVERSATION_STATE_CONFIG[conversationState]
 }
 
 /* ---------------------------------------------------------------------------
@@ -63,21 +87,23 @@ const capsuleVariants = cva(
 interface StatusCapsuleProps
   extends Omit<React.HTMLAttributes<HTMLButtonElement>, "children">,
     VariantProps<typeof capsuleVariants> {
-  state: CapsuleState
+  conversationState: ConversationState
+  executionState?: ExecutionState
   progress?: { current: number; total: number }
 }
 
 function StatusCapsule({
-  state,
+  conversationState,
+  executionState = "not_started",
   progress,
   className,
   surface: _surface,
   ...props
 }: StatusCapsuleProps) {
-  const config = STATE_CONFIG[state]
+  const config = getStatusCapsuleConfig(conversationState, executionState)
 
   const label =
-    state === "executing" && progress
+    executionState === "executing" && progress
       ? `Running ${progress.current} of ${progress.total}`
       : config.label
 
@@ -120,5 +146,11 @@ function StatusCapsule({
   )
 }
 
-export { StatusCapsule, capsuleVariants, STATE_CONFIG }
-export type { CapsuleState, StatusCapsuleProps }
+export {
+  CONVERSATION_STATE_CONFIG,
+  EXECUTION_STATE_CONFIG,
+  StatusCapsule,
+  capsuleVariants,
+  getStatusCapsuleConfig,
+}
+export type { StatusCapsuleProps }

@@ -5,17 +5,11 @@ import { X } from "lucide-react"
 
 import { Panel } from "@/components/ui/panel"
 import { cn } from "@/lib/utils"
+import type { TaskState } from "@/state"
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
-type TaskStatus =
-  | "not_started"
-  | "pending"
-  | "in_progress"
-  | "completed"
-  | "failed"
 
 type RiskLevel = "low" | "medium" | "high"
 
@@ -25,7 +19,7 @@ interface TaskHeaderData {
 }
 
 interface TaskMetaData {
-  status: TaskStatus
+  status: TaskState
   risk: RiskLevel
   scope: string
 }
@@ -40,26 +34,56 @@ interface TaskStatusConfig {
   className: string
 }
 
-const TASK_STATUS_CONFIG: Record<TaskStatus, TaskStatusConfig> = {
-  not_started: {
+const TASK_STATUS_CONFIG: Record<TaskState, TaskStatusConfig> = {
+  idle: {
     label: "Not started",
     dotColor: "var(--color-subtle)",
     className: "type-body-sm text-subtle",
   },
-  pending: {
-    label: "Pending",
+  listening: {
+    label: "Listening\u2026",
     dotColor: "var(--color-brand)",
     className: "type-body-sm text-brand",
   },
-  in_progress: {
+  understanding: {
+    label: "Understanding\u2026",
+    dotColor: "var(--color-brand)",
+    className: "type-body-sm text-brand",
+  },
+  planning: {
+    label: "Planning\u2026",
+    dotColor: "var(--color-brand)",
+    className: "type-body-sm text-brand",
+  },
+  waiting_approval: {
+    label: "Needs approval",
+    dotColor: "var(--color-brand)",
+    className: "type-body-sm text-brand",
+  },
+  executing: {
     label: "In progress",
     dotColor: "var(--color-teal)",
     className: "type-body-sm text-teal",
+  },
+  paused: {
+    label: "Paused",
+    dotColor: "var(--color-subtle)",
+    className: "type-body-sm text-subtle",
   },
   completed: {
     label: "Completed",
     dotColor: "var(--color-teal)",
     className: "type-body-sm text-teal",
+  },
+  cancelled: {
+    label: "Cancelled",
+    dotColor: "var(--color-subtle)",
+    className: "type-body-sm text-subtle",
+  },
+  reverted: {
+    label: "Reverted",
+    dotColor: "var(--color-error)",
+    className: "type-body-sm text-error",
   },
   failed: {
     label: "Failed",
@@ -245,7 +269,7 @@ function TaskPanel({
 
 export { TaskPanel, taskPanelVariants, TASK_STATUS_CONFIG, RISK_LEVEL_CONFIG }
 export type {
-  TaskStatus,
+  TaskState,
   RiskLevel,
   TaskHeaderData,
   TaskMetaData,

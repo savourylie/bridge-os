@@ -21,7 +21,7 @@ const MOCK_HEADER: TaskHeaderData = {
 }
 
 const MOCK_META: TaskMetaData = {
-  status: "in_progress",
+  status: "waiting_approval",
   risk: "medium",
   scope: "Downloads only",
 }
@@ -31,7 +31,7 @@ const MOCK_INTENT: IntentData = {
   scope: "~/Downloads only",
   constraints: "Keep original filenames and preserve rollback metadata",
   exclusions: "Ignore PDFs, zip files, hidden files, and installers",
-  executionStatus: "waiting_approval",
+  executionStatus: "waiting_confirmation",
 }
 
 const MOCK_PLAN: DraftPlanData = {

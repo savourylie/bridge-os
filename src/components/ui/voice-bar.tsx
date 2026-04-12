@@ -3,35 +3,96 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { Mic, MicOff } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import type { ConversationState } from "@/state"
 
 /* ---------------------------------------------------------------------------
    Turn-state types & configuration
    --------------------------------------------------------------------------- */
 
-type TurnState =
-  | "idle"
-  | "listening"
-  | "user_holding_turn"
-  | "ai_speaking"
-  | "awaiting_clarification"
-  | "barge_in_detected"
-  | "muted"
-
-interface TurnStateConfig {
+interface VoiceBarStateConfig {
   barOpacity: number
   barAnimating: boolean
+  barFullWidth: boolean
   label: string
   indicatorColor: string
+  placeholder?: string
 }
 
-const TURN_STATE_CONFIG: Record<TurnState, TurnStateConfig> = {
-  idle:                    { barOpacity: 0.4, barAnimating: false, label: "Idle",                    indicatorColor: "var(--color-brand)" },
-  listening:               { barOpacity: 1.0, barAnimating: true,  label: "Listening\u2026",         indicatorColor: "var(--color-brand)" },
-  user_holding_turn:       { barOpacity: 1.0, barAnimating: true,  label: "User speaking\u2026",     indicatorColor: "var(--color-brand)" },
-  ai_speaking:             { barOpacity: 1.0, barAnimating: false, label: "AI speaking\u2026",       indicatorColor: "var(--color-brand)" },
-  awaiting_clarification:  { barOpacity: 0.6, barAnimating: true,  label: "Awaiting clarification",  indicatorColor: "var(--color-brand)" },
-  barge_in_detected:       { barOpacity: 1.0, barAnimating: false, label: "Barge-in detected",       indicatorColor: "var(--color-brand)" },
-  muted:                   { barOpacity: 0.4, barAnimating: false, label: "Muted",                   indicatorColor: "var(--color-subtle)" },
+const VOICE_BAR_STATE_CONFIG: Record<ConversationState, VoiceBarStateConfig> = {
+  idle: {
+    barOpacity: 0.4,
+    barAnimating: false,
+    barFullWidth: false,
+    label: "Idle",
+    indicatorColor: "var(--color-brand)",
+    placeholder: "Say \u201CComputer\u201D to begin\u2026",
+  },
+  listening: {
+    barOpacity: 1,
+    barAnimating: true,
+    barFullWidth: false,
+    label: "Listening\u2026",
+    indicatorColor: "var(--color-brand)",
+  },
+  holding_for_more: {
+    barOpacity: 1,
+    barAnimating: true,
+    barFullWidth: false,
+    label: "Holding for more\u2026",
+    indicatorColor: "var(--color-brand)",
+    placeholder: "Continue speaking\u2026",
+  },
+  clarifying: {
+    barOpacity: 0.6,
+    barAnimating: true,
+    barFullWidth: false,
+    label: "Clarifying\u2026",
+    indicatorColor: "var(--color-brand)",
+    placeholder: "Awaiting clarification",
+  },
+  intent_locked: {
+    barOpacity: 0.6,
+    barAnimating: false,
+    barFullWidth: false,
+    label: "Intent locked",
+    indicatorColor: "var(--color-brand)",
+    placeholder: "Intent locked",
+  },
+  speaking: {
+    barOpacity: 1,
+    barAnimating: false,
+    barFullWidth: true,
+    label: "AI speaking\u2026",
+    indicatorColor: "var(--color-brand)",
+  },
+  interrupted: {
+    barOpacity: 1,
+    barAnimating: false,
+    barFullWidth: true,
+    label: "Interrupted",
+    indicatorColor: "var(--color-brand)",
+    placeholder: "Interrupted",
+  },
+}
+
+const MUTED_STATE_CONFIG: VoiceBarStateConfig = {
+  barOpacity: 0.4,
+  barAnimating: false,
+  barFullWidth: false,
+  label: "Muted",
+  indicatorColor: "var(--color-subtle)",
+  placeholder: "Microphone muted",
+}
+
+function getVoiceBarStateConfig(
+  conversationState: ConversationState,
+  muted = false,
+): VoiceBarStateConfig {
+  if (muted) {
+    return MUTED_STATE_CONFIG
+  }
+
+  return VOICE_BAR_STATE_CONFIG[conversationState]
 }
 
 /* ---------------------------------------------------------------------------
@@ -59,14 +120,16 @@ const voiceBarVariants = cva(
 interface VoiceBarProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "children">,
     VariantProps<typeof voiceBarVariants> {
-  turnState: TurnState
+  conversationState: ConversationState
+  muted?: boolean
   amplitude?: number
   transcript?: string
   onMuteToggle?: () => void
 }
 
 function VoiceBar({
-  turnState,
+  conversationState,
+  muted = false,
   amplitude = 0,
   transcript,
   onMuteToggle,
@@ -74,12 +137,12 @@ function VoiceBar({
   surface: _surface,
   ...props
 }: VoiceBarProps) {
-  const config = TURN_STATE_CONFIG[turnState]
+  const config = getVoiceBarStateConfig(conversationState, muted)
 
   // Amplitude drives bar width: 60% base + 40% * amplitude
   const barWidth = config.barAnimating
     ? 60 + amplitude * 40
-    : turnState === "ai_speaking" || turnState === "barge_in_detected"
+    : config.barFullWidth
       ? 100
       : 60
 
@@ -108,11 +171,7 @@ function VoiceBar({
           <p className="type-body-lg text-body-text">{transcript}</p>
         ) : (
           <p className="type-body-lg text-subtle" style={{ opacity: 0.5 }}>
-            {turnState === "muted"
-              ? "Microphone muted"
-              : turnState === "idle"
-                ? "Say \u201CComputer\u201D to begin\u2026"
-                : "\u00A0"}
+            {config.placeholder ?? "\u00A0"}
           </p>
         )}
       </div>
@@ -123,15 +182,15 @@ function VoiceBar({
           type="button"
           className="inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-2 text-subtle transition-colors hover:text-body-text"
           onClick={onMuteToggle}
-          aria-label={turnState === "muted" ? "Unmute" : "Mute"}
+          aria-label={muted ? "Unmute" : "Mute"}
         >
-          {turnState === "muted" ? (
+          {muted ? (
             <MicOff className="h-4 w-4" />
           ) : (
             <Mic className="h-4 w-4" />
           )}
           <span className="type-caption">
-            {turnState === "muted" ? "Unmute" : "Mute"}
+            {muted ? "Unmute" : "Mute"}
           </span>
         </button>
       </div>
@@ -139,5 +198,11 @@ function VoiceBar({
   )
 }
 
-export { VoiceBar, voiceBarVariants, TURN_STATE_CONFIG }
-export type { TurnState, VoiceBarProps }
+export {
+  MUTED_STATE_CONFIG,
+  VOICE_BAR_STATE_CONFIG,
+  VoiceBar,
+  getVoiceBarStateConfig,
+  voiceBarVariants,
+}
+export type { VoiceBarProps }
