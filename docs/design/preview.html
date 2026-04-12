@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design System Preview: Star Trek: Insurrection (Light)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Surfaces & text */
+    --black: #1a1d21;
+    --white: #f7f5f2;
+    --gray-50: #f9f3ea;
+    --gray-100: #cdd3da;
+    --gray-400: #7a8494;
+    --gray-500: #7a8494;
+    --gray-600: #3d4550;
+
+    /* Brand & semantic */
+    --brand-primary: #cc7a00;
+    --brand-accent: #2a9d8f;
+    --semantic-error: #c44536;
+    --link-blue: #cc7a00;
+    --focus-ring: rgba(204, 122, 0, 0.35);
+    --badge-bg: rgba(42, 157, 143, 0.1);
+    --badge-text: #2a9d8f;
+
+    /* Film-specific */
+    --surface-cool: #edf1f4;
+    --surface-warm: #f9f3ea;
+    --surface-deep: #dfe4e8;
+
+    /* Shadows */
+    --shadow-ring: 0px 0px 0px 1px #cdd3da;
+    --shadow-subtle: rgba(0,0,0,0.04) 0px 2px 2px 0px;
+    --shadow-card: 0px 0px 0px 1px #cdd3da;
+    --shadow-floating: 0 2px 8px rgba(26, 29, 33, 0.08);
+
+    /* Fonts */
+    --font-sans: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--white);
+    color: var(--black);
+    font-family: var(--font-sans);
+    font-size: 16px; font-weight: 400; line-height: 1.50;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* NAV */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 32px;
+    background: rgba(247,245,242,0.85);
+    backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-ring);
+  }
+  .nav-brand { font-size: 14px; font-weight: 600; color: var(--black); text-decoration: none; }
+  .nav-links { display: flex; gap: 24px; list-style: none; }
+  .nav-links a { font-size: 14px; font-weight: 500; color: var(--gray-600); text-decoration: none; transition: color 0.15s; }
+  .nav-links a:hover { color: var(--black); }
+  .nav-cta {
+    display: inline-block; background: var(--brand-primary); color: #ffffff;
+    padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500;
+    text-decoration: none; transition: background 0.15s;
+  }
+  .nav-cta:hover { background: #b36b00; }
+
+  /* HERO */
+  .hero { padding: 96px 32px 80px; text-align: center; }
+  .hero h1 { font-size: 32px; font-weight: 600; line-height: 1.15; letter-spacing: -0.48px; color: var(--black); margin-bottom: 16px; }
+  .hero p { font-size: 16px; font-weight: 400; line-height: 1.6; color: var(--gray-600); max-width: 600px; margin: 0 auto 32px; }
+  .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    display: inline-block; background: var(--brand-primary); color: #ffffff;
+    padding: 10px 20px; border-radius: 8px; border: none;
+    font-family: var(--font-sans); font-size: 14px; font-weight: 500;
+    text-decoration: none; cursor: pointer; transition: background 0.15s;
+  }
+  .btn-primary:hover { background: #b36b00; }
+  .btn-ghost {
+    display: inline-block; background: transparent; color: var(--brand-primary);
+    padding: 10px 20px; border-radius: 8px; border: 1px solid var(--brand-primary);
+    font-family: var(--font-sans); font-size: 14px; font-weight: 500;
+    text-decoration: none; cursor: pointer; transition: background 0.15s;
+  }
+  .btn-ghost:hover { background: rgba(204, 122, 0, 0.06); }
+
+  /* SECTIONS */
+  .section { padding: 64px 32px; max-width: 1200px; margin: 0 auto; }
+  .section-label { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--gray-400); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+  .section-title { font-size: 24px; font-weight: 600; line-height: 1.20; letter-spacing: -0.36px; margin-bottom: 32px; }
+  .section-divider { border: none; border-top: 1px solid var(--gray-100); margin: 0; }
+
+  /* COLORS */
+  .color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .color-swatch { border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-ring); }
+  .color-swatch-block { height: 72px; width: 100%; }
+  .color-swatch-info { padding: 10px 12px; }
+  .color-swatch-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .color-swatch-hex { font-size: 12px; color: var(--gray-500); font-family: var(--font-mono); }
+  .color-swatch-role { font-size: 11px; color: var(--gray-400); margin-top: 3px; }
+  .color-group-label { font-size: 14px; font-weight: 600; color: var(--gray-600); margin: 24px 0 10px; }
+
+  /* TYPOGRAPHY */
+  .type-sample { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--gray-100); }
+  .type-sample:last-child { border-bottom: none; }
+  .type-meta { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--gray-400); margin-top: 8px; }
+
+  /* BUTTONS */
+  .button-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+  .button-item { text-align: center; }
+  .button-label { font-size: 12px; font-weight: 500; color: var(--gray-400); margin-top: 8px; }
+  .btn-pill { display: inline-block; background: var(--badge-bg); color: var(--badge-text); padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; text-decoration: none; }
+
+  /* CARDS */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+  .card { background: var(--surface-cool); border-radius: 8px; padding: 24px; box-shadow: var(--shadow-card); transition: box-shadow 0.2s; }
+  .card:hover { box-shadow: var(--shadow-floating); }
+  .card h3 { font-size: 20px; font-weight: 600; letter-spacing: -0.30px; margin-bottom: 8px; }
+  .card p { font-size: 14px; color: var(--gray-600); line-height: 1.5; }
+  .card-badge { display: inline-block; font-family: var(--font-mono); font-size: 12px; font-weight: 500; text-transform: uppercase; padding: 2px 8px; border-radius: 9999px; margin-bottom: 12px; }
+
+  /* FORMS */
+  .form-group { margin-bottom: 20px; max-width: 400px; }
+  .form-label { display: block; font-size: 11px; font-weight: 600; color: var(--gray-400); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .form-input {
+    width: 100%; background: #ffffff; color: var(--black);
+    border: 1px solid var(--gray-100); padding: 10px 14px; border-radius: 4px;
+    font-family: var(--font-sans); font-size: 14px; outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .form-input:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(204, 122, 0, 0.15); }
+  .form-input--focus { border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(204, 122, 0, 0.15); }
+  .form-input--error { border-color: var(--semantic-error); box-shadow: 0 0 0 3px rgba(196, 69, 54, 0.15); }
+  .form-textarea {
+    width: 100%; min-height: 80px; background: #ffffff; color: var(--black);
+    border: 1px solid var(--gray-100); padding: 10px 14px; border-radius: 4px;
+    font-family: var(--font-sans); font-size: 14px; resize: vertical; outline: none;
+  }
+  .form-state-label { font-size: 11px; color: var(--gray-400); margin-top: 4px; }
+
+  /* SPACING */
+  .spacing-row { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+  .spacing-item { text-align: center; }
+  .spacing-block { background: var(--brand-primary); border-radius: 3px; margin-bottom: 6px; height: 28px; }
+  .spacing-value { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--gray-400); }
+
+  /* RADIUS */
+  .radius-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+  .radius-item { text-align: center; }
+  .radius-box { width: 64px; height: 64px; background: var(--surface-cool); border: 1px solid var(--gray-100); margin-bottom: 6px; }
+  .radius-label { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--gray-400); }
+  .radius-context { font-size: 10px; color: var(--gray-400); }
+
+  /* ELEVATION */
+  .elevation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+  .elevation-card { background: var(--white); border-radius: 8px; padding: 20px; text-align: center; }
+  .elevation-label { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .elevation-desc { font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); }
+
+  /* FOOTER */
+  .footer { padding: 32px; text-align: center; border-top: 1px solid var(--gray-100); font-size: 13px; color: var(--gray-500); }
+  .footer a { color: var(--link-blue); text-decoration: underline; }
+
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 24px; letter-spacing: -0.36px; }
+    .nav-links { display: none; }
+    .section { padding: 48px 20px; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="#">Star Trek: Insurrection design system</a>
+  <ul class="nav-links">
+    <li><a href="#colors">Colors</a></li>
+    <li><a href="#typography">Typography</a></li>
+    <li><a href="#buttons">Buttons</a></li>
+    <li><a href="#cards">Cards</a></li>
+    <li><a href="#forms">Forms</a></li>
+    <li><a href="#spacing">Spacing</a></li>
+  </ul>
+  <a class="nav-cta" href="#">Get Started</a>
+</nav>
+
+<section class="hero">
+  <h1>Design System<br>Inspired by Star Trek: Insurrection</h1>
+  <p>A design token catalog for BridgeOS — dual-register interface with warm conversational presence and cool operational precision. Every color, font, component, and spacing value visualized.</p>
+  <div class="hero-buttons">
+    <a class="btn-primary" href="#">Approve</a>
+    <a class="btn-ghost" href="#">Adjust</a>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="colors">
+  <div class="section-label">01 / Colors</div>
+  <h2 class="section-title">Color Palette</h2>
+
+  <div class="color-group-label">Primary</div>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#cc7a00"></div><div class="color-swatch-info"><div class="color-swatch-name">Amber Signal</div><div class="color-swatch-hex">#cc7a00</div><div class="color-swatch-role">Brand CTA, approve buttons, voice indicator</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#2a9d8f"></div><div class="color-swatch-info"><div class="color-swatch-name">Operational Teal</div><div class="color-swatch-hex">#2a9d8f</div><div class="color-swatch-role">Completion, success states</div></div></div>
+  </div>
+
+  <div class="color-group-label">Surface & Background</div>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#f7f5f2"></div><div class="color-swatch-info"><div class="color-swatch-name">Warm Canvas</div><div class="color-swatch-hex">#f7f5f2</div><div class="color-swatch-role">Page background</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#edf1f4"></div><div class="color-swatch-info"><div class="color-swatch-name">Cool Panel</div><div class="color-swatch-hex">#edf1f4</div><div class="color-swatch-role">Operational panels, step cards</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#f9f3ea"></div><div class="color-swatch-info"><div class="color-swatch-name">Warm Panel</div><div class="color-swatch-hex">#f9f3ea</div><div class="color-swatch-role">Conversation surfaces, completion</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#dfe4e8"></div><div class="color-swatch-info"><div class="color-swatch-name">Deep Panel</div><div class="color-swatch-hex">#dfe4e8</div><div class="color-swatch-role">Approval gates, emphasis panels</div></div></div>
+  </div>
+
+  <div class="color-group-label">Neutrals & Text</div>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#1a1d21"></div><div class="color-swatch-info"><div class="color-swatch-name">Ink</div><div class="color-swatch-hex">#1a1d21</div><div class="color-swatch-role">Headings, high-emphasis</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#3d4550"></div><div class="color-swatch-info"><div class="color-swatch-name">Body</div><div class="color-swatch-hex">#3d4550</div><div class="color-swatch-role">Paragraphs, descriptions</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#7a8494"></div><div class="color-swatch-info"><div class="color-swatch-name">Muted</div><div class="color-swatch-hex">#7a8494</div><div class="color-swatch-role">Timestamps, metadata</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#cdd3da"></div><div class="color-swatch-info"><div class="color-swatch-name">Hairline</div><div class="color-swatch-hex">#cdd3da</div><div class="color-swatch-role">Borders, panel edges</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#e4e8ec"></div><div class="color-swatch-info"><div class="color-swatch-name">Divider</div><div class="color-swatch-hex">#e4e8ec</div><div class="color-swatch-role">Section dividers</div></div></div>
+  </div>
+
+  <div class="color-group-label">Semantic</div>
+  <div class="color-grid">
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#2a9d8f"></div><div class="color-swatch-info"><div class="color-swatch-name">Success</div><div class="color-swatch-hex">#2a9d8f</div><div class="color-swatch-role">Completed steps, passed</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#cc7a00"></div><div class="color-swatch-info"><div class="color-swatch-name">Warning</div><div class="color-swatch-hex">#cc7a00</div><div class="color-swatch-role">Pending approvals</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#c44536"></div><div class="color-swatch-info"><div class="color-swatch-name">Error</div><div class="color-swatch-hex">#c44536</div><div class="color-swatch-role">Failed steps, destructive</div></div></div>
+    <div class="color-swatch"><div class="color-swatch-block" style="background:#4a7fb5"></div><div class="color-swatch-info"><div class="color-swatch-name">Info</div><div class="color-swatch-hex">#4a7fb5</div><div class="color-swatch-role">Informational callouts</div></div></div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="typography">
+  <div class="section-label">02 / Typography</div>
+  <h2 class="section-title">Typography Scale</h2>
+
+  <div class="type-sample"><div style="font-size:32px; font-weight:600; line-height:1.15; letter-spacing:-0.48px;">Display Hero — Goal Statement</div><div class="type-meta">Display Hero — 32px / 600 / 1.15 / -0.48px / Inter</div></div>
+  <div class="type-sample"><div style="font-size:24px; font-weight:600; line-height:1.20; letter-spacing:-0.36px;">Heading 1 — View Title</div><div class="type-meta">Heading 1 — 24px / 600 / 1.20 / -0.36px / Inter</div></div>
+  <div class="type-sample"><div style="font-size:20px; font-weight:600; line-height:1.25; letter-spacing:-0.30px;">Heading 2 — Panel Section</div><div class="type-meta">Heading 2 — 20px / 600 / 1.25 / -0.30px / Inter</div></div>
+  <div class="type-sample"><div style="font-size:16px; font-weight:600; line-height:1.30; letter-spacing:-0.16px;">Heading 3 — Sub-heading</div><div class="type-meta">Heading 3 — 16px / 600 / 1.30 / -0.16px / Inter</div></div>
+  <div class="type-sample"><div style="font-size:16px; font-weight:400; line-height:1.60;">Body Large — Transcript text, conversational content that flows naturally through the reading corridor.</div><div class="type-meta">Body Large — 16px / 400 / 1.60 / Inter</div></div>
+  <div class="type-sample"><div style="font-size:14px; font-weight:400; line-height:1.55;">Body — Step descriptions, field values, standard interface text for operational views.</div><div class="type-meta">Body — 14px / 400 / 1.55 / Inter</div></div>
+  <div class="type-sample"><div style="font-size:13px; font-weight:400; line-height:1.50;">Body Small — Impact summaries and secondary operational copy.</div><div class="type-meta">Body Small — 13px / 400 / 1.50 / Inter</div></div>
+  <div class="type-sample"><div style="font-size:11px; font-weight:600; line-height:1.20; letter-spacing:0.06em; text-transform:uppercase;">LABEL — GOAL · SCOPE · STATUS</div><div class="type-meta">Label — 11px / 600 / 1.20 / +0.06em / Inter / uppercase</div></div>
+  <div class="type-sample"><div style="font-size:11px; font-weight:400; line-height:1.35; letter-spacing:0.04em; color:#7a8494;">Caption — 2 min ago · Not started · Step 3 of 7</div><div class="type-meta">Caption — 11px / 400 / 1.35 / +0.04em / Inter</div></div>
+  <div class="type-sample"><div style="font-family:var(--font-mono); font-size:13px; font-weight:400; line-height:1.55;">sudo apt install ffmpeg</div><div class="type-meta">Code — 13px / 400 / 1.55 / JetBrains Mono</div></div>
+  <div class="type-sample"><div style="font-size:14px; font-weight:500; line-height:1.00; letter-spacing:0.01em;">Button Label</div><div class="type-meta">Button — 14px / 500 / 1.00 / +0.01em / Inter</div></div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="buttons">
+  <div class="section-label">03 / Buttons</div>
+  <h2 class="section-title">Button Variants</h2>
+  <div class="button-row">
+    <div class="button-item"><a class="btn-primary" href="#">Approve</a><div class="button-label">Primary (Approve)</div></div>
+    <div class="button-item"><a class="btn-ghost" href="#">Adjust</a><div class="button-label">Secondary (Adjust)</div></div>
+    <div class="button-item"><span style="display:inline-block; background:transparent; color:#7a8494; padding:10px 16px; font-size:14px; font-weight:500; cursor:pointer;">Cancel</span><div class="button-label">Tertiary (Cancel)</div></div>
+    <div class="button-item"><a class="btn-pill" href="#">Completed</a><div class="button-label">Status Badge</div></div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="cards">
+  <div class="section-label">04 / Cards</div>
+  <h2 class="section-title">Card Examples</h2>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-badge" style="background:rgba(42, 157, 143, 0.1); color:#2a9d8f;">Step Card</div>
+      <h3>Organize Downloads</h3>
+      <p>Move .pdf files to Documents/PDFs — standard timeline step card with cool panel surface, 1px border, 8px radius.</p>
+    </div>
+    <div class="card" style="background:#dfe4e8; border: 2px solid #cdd3da; border-left: 3px solid #cc7a00;">
+      <div class="card-badge" style="background:rgba(204, 122, 0, 0.1); color:#cc7a00;">Approval Gate</div>
+      <h3>Install ffmpeg via apt</h3>
+      <p>Requires sudo elevation — monolith interrupt card with deep panel surface, 2px border, amber left accent stripe.</p>
+    </div>
+    <div class="card" style="background:#f9f3ea; border: 1px solid #e4e8ec;">
+      <div class="card-badge" style="background:rgba(42, 157, 143, 0.1); color:#2a9d8f;">Complete</div>
+      <h3>Task Completed</h3>
+      <p>7 files organized, 1 package installed — warm panel surface signals resolution, return to conversational register.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="forms">
+  <div class="section-label">05 / Forms</div>
+  <h2 class="section-title">Form Elements</h2>
+  <div class="form-group"><label class="form-label">Goal</label><input class="form-input" type="text" placeholder="Describe what you want to accomplish"><div class="form-state-label">Default</div></div>
+  <div class="form-group"><label class="form-label">Scope</label><input class="form-input form-input--focus" type="text" value="~/Downloads folder only"><div class="form-state-label">Focus (amber ring)</div></div>
+  <div class="form-group"><label class="form-label">Constraint</label><input class="form-input form-input--error" type="text" value="Cannot delete system files"><div class="form-state-label">Error</div></div>
+  <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" placeholder="Additional context..."></textarea></div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="spacing">
+  <div class="section-label">06 / Spacing</div>
+  <h2 class="section-title">Spacing Scale</h2>
+  <div class="spacing-row">
+    <div class="spacing-item"><div class="spacing-block" style="width:2px"></div><div class="spacing-value">2</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:4px"></div><div class="spacing-value">4</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:8px"></div><div class="spacing-value">8</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:12px"></div><div class="spacing-value">12</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:16px"></div><div class="spacing-value">16</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:20px"></div><div class="spacing-value">20</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:24px"></div><div class="spacing-value">24</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:32px"></div><div class="spacing-value">32</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:48px"></div><div class="spacing-value">48</div></div>
+    <div class="spacing-item"><div class="spacing-block" style="width:64px"></div><div class="spacing-value">64</div></div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="radius">
+  <div class="section-label">07 / Radius</div>
+  <h2 class="section-title">Border Radius Scale</h2>
+  <div class="radius-row">
+    <div class="radius-item"><div class="radius-box" style="border-radius:4px"></div><div class="radius-label">4px</div><div class="radius-context">Inputs, badges</div></div>
+    <div class="radius-item"><div class="radius-box" style="border-radius:8px"></div><div class="radius-label">8px</div><div class="radius-context">Panels, buttons</div></div>
+    <div class="radius-item"><div class="radius-box" style="border-radius:24px"></div><div class="radius-label">24px</div><div class="radius-context">StatusCapsule</div></div>
+    <div class="radius-item"><div class="radius-box" style="border-radius:9999px"></div><div class="radius-label">9999px</div><div class="radius-context">State dots</div></div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="elevation">
+  <div class="section-label">08 / Elevation</div>
+  <h2 class="section-title">Elevation &amp; Depth</h2>
+  <div class="elevation-grid">
+    <div class="elevation-card" style="background: var(--surface-cool); border: 1px solid #cdd3da;"><div class="elevation-label">Level 0: Flat</div><div class="elevation-desc">1px border, no shadow</div></div>
+    <div class="elevation-card" style="background: var(--surface-deep); border: 2px solid #cdd3da;"><div class="elevation-label">Level 2: Emphasis</div><div class="elevation-desc">2px border, deep panel</div></div>
+    <div class="elevation-card" style="box-shadow: 0 2px 8px rgba(26, 29, 33, 0.08);"><div class="elevation-label">Level 3: Capsule</div><div class="elevation-desc">Shadow for floating elements</div></div>
+    <div class="elevation-card" style="box-shadow: 0 0 0 3px rgba(204, 122, 0, 0.35);"><div class="elevation-label">Focus Ring</div><div class="elevation-desc">Amber focus outline</div></div>
+  </div>
+</section>
+
+<footer class="footer">
+  Generated from Star Trek: Insurrection DESIGN.md — cinematic-design-system
+</footer>
+
+</body>
+</html>
