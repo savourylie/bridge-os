@@ -12,6 +12,7 @@ import TimelinePage from "@/pages/Timeline";
 import ApprovalCardPage from "@/pages/ApprovalCard";
 import CompletionSummaryPage from "@/pages/CompletionSummary";
 import ExecutionUiPage from "@/pages/ExecutionUi";
+import DemoPage from "@/pages/Demo";
 import { Link } from "react-router-dom";
 
 function Home() {
@@ -81,6 +82,9 @@ function Home() {
         <Link to="/components/execution-ui" className="type-caption text-link hover:underline">
           View Execution UI
         </Link>
+        <Link to="/demo" className="type-caption text-link hover:underline">
+          View Interactive Demo
+        </Link>
       </motion.div>
     </div>
   );
@@ -101,6 +105,7 @@ function App() {
       <Route path="/components/approval-card" element={<ApprovalCardPage />} />
       <Route path="/components/completion-summary" element={<CompletionSummaryPage />} />
       <Route path="/components/execution-ui" element={<ExecutionUiPage />} />
+      <Route path="/demo" element={<DemoPage />} />
     </Routes>
   );
 }

@@ -2,7 +2,7 @@ import { motion } from "framer-motion"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
-import type { ConversationState, ExecutionState } from "@/state"
+import type { ConversationState, ExecutionState, TaskState } from "@/state"
 
 /* ---------------------------------------------------------------------------
    State types & configuration
@@ -50,12 +50,95 @@ const EXECUTION_STATE_CONFIG: Record<ExecutionState, StateConfig> = {
   failed: { dotColor: "var(--color-error)", label: "Failed", surface: "cool", breathing: false },
 }
 
+const TASK_STATE_CONFIG: Partial<Record<TaskState, StateConfig>> = {
+  listening: {
+    dotColor: "var(--color-brand)",
+    label: "Listening\u2026",
+    surface: "warm",
+    breathing: false,
+  },
+  understanding: {
+    dotColor: "var(--color-brand)",
+    label: "Understanding\u2026",
+    surface: "warm",
+    breathing: false,
+  },
+  planning: {
+    dotColor: "var(--color-teal)",
+    label: "Planning\u2026",
+    surface: "cool",
+    breathing: false,
+  },
+  waiting_approval: {
+    dotColor: "var(--color-brand)",
+    label: "Needs approval",
+    surface: "cool",
+    breathing: false,
+  },
+  executing: {
+    dotColor: "var(--color-teal)",
+    label: "Running\u2026",
+    surface: "cool",
+    breathing: false,
+  },
+  paused: {
+    dotColor: "var(--color-subtle)",
+    label: "Paused",
+    surface: "cool",
+    breathing: false,
+  },
+  completed: {
+    dotColor: "var(--color-teal)",
+    label: "Complete",
+    surface: "warm",
+    breathing: false,
+  },
+  cancelled: {
+    dotColor: "var(--color-subtle)",
+    label: "Cancelled",
+    surface: "cool",
+    breathing: false,
+  },
+  reverted: {
+    dotColor: "var(--color-error)",
+    label: "Reverted",
+    surface: "cool",
+    breathing: false,
+  },
+  failed: {
+    dotColor: "var(--color-error)",
+    label: "Failed",
+    surface: "cool",
+    breathing: false,
+  },
+}
+
 function getStatusCapsuleConfig(
   conversationState: ConversationState,
   executionState: ExecutionState = "not_started",
+  taskState?: TaskState,
 ): StateConfig {
-  if (executionState !== "not_started") {
+  const taskPlanning = taskState === "planning"
+
+  switch (taskState) {
+    case "understanding":
+    case "planning":
+    case "cancelled":
+    case "reverted":
+      return TASK_STATE_CONFIG[taskState] ?? EXECUTION_STATE_CONFIG.not_started
+    default:
+      break
+  }
+
+  if (
+    executionState !== "not_started" &&
+    !(executionState === "waiting_confirmation" && taskPlanning)
+  ) {
     return EXECUTION_STATE_CONFIG[executionState]
+  }
+
+  if (taskState !== undefined && TASK_STATE_CONFIG[taskState] !== undefined) {
+    return TASK_STATE_CONFIG[taskState] ?? EXECUTION_STATE_CONFIG.not_started
   }
 
   return CONVERSATION_STATE_CONFIG[conversationState]
@@ -89,18 +172,24 @@ interface StatusCapsuleProps
     VariantProps<typeof capsuleVariants> {
   conversationState: ConversationState
   executionState?: ExecutionState
+  taskState?: TaskState
   progress?: { current: number; total: number }
 }
 
 function StatusCapsule({
   conversationState,
   executionState = "not_started",
+  taskState,
   progress,
   className,
   surface: _surface,
   ...props
 }: StatusCapsuleProps) {
-  const config = getStatusCapsuleConfig(conversationState, executionState)
+  const config = getStatusCapsuleConfig(
+    conversationState,
+    executionState,
+    taskState,
+  )
 
   const label =
     executionState === "executing" && progress

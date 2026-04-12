@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { AnimatePresence, motion } from "framer-motion"
 import { X } from "lucide-react"
@@ -194,6 +194,9 @@ interface TaskPanelProps extends VariantProps<typeof taskPanelVariants> {
   meta: TaskMetaData
   children?: React.ReactNode
   className?: string
+  autoScrollToBottom?: boolean
+  autoScrollTrigger?: number | string
+  autoScrollBehavior?: ScrollBehavior
 }
 
 function TaskPanel({
@@ -204,7 +207,12 @@ function TaskPanel({
   children,
   width,
   className,
+  autoScrollToBottom = false,
+  autoScrollTrigger,
+  autoScrollBehavior = "smooth",
 }: TaskPanelProps) {
+  const scrollRegionRef = useRef<HTMLDivElement>(null)
+
   // Close on Escape key
   useEffect(() => {
     if (!isOpen) return
@@ -218,6 +226,28 @@ function TaskPanel({
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
   }, [isOpen, onClose])
+
+  useEffect(() => {
+    if (!isOpen || !autoScrollToBottom) {
+      return
+    }
+
+    const scrollRegion = scrollRegionRef.current
+
+    if (scrollRegion === null) {
+      return
+    }
+
+    if (typeof scrollRegion.scrollTo === "function") {
+      scrollRegion.scrollTo({
+        top: scrollRegion.scrollHeight,
+        behavior: autoScrollBehavior,
+      })
+      return
+    }
+
+    scrollRegion.scrollTop = scrollRegion.scrollHeight
+  }, [isOpen, autoScrollBehavior, autoScrollToBottom, autoScrollTrigger])
 
   return (
     <AnimatePresence>
@@ -253,7 +283,7 @@ function TaskPanel({
             </div>
 
             {/* Scrollable children zone */}
-            <div className="flex-1 overflow-y-auto pt-4">
+            <div ref={scrollRegionRef} className="flex-1 overflow-y-auto pt-4">
               {children}
             </div>
           </Panel>

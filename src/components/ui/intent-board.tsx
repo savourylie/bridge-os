@@ -21,6 +21,8 @@ interface IntentData {
   exclusions?: string
   unresolvedQuestions?: UnresolvedQuestion[]
   executionStatus: ExecutionState
+  executionLabel?: string
+  executionClassName?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -108,6 +110,8 @@ function IntentBoard({
   ...props
 }: IntentBoardProps) {
   const statusConfig = EXECUTION_STATUS_CONFIG[data.executionStatus]
+  const executionLabel = data.executionLabel ?? statusConfig.label
+  const executionClassName = data.executionClassName ?? statusConfig.className
   const hasQuestions =
     data.unresolvedQuestions !== undefined &&
     data.unresolvedQuestions.length > 0
@@ -169,7 +173,7 @@ function IntentBoard({
 
         {/* EXECUTION STATUS — always visible */}
         <IntentField label="EXECUTION" visible>
-          <p className={statusConfig.className}>{statusConfig.label}</p>
+          <p className={executionClassName}>{executionLabel}</p>
         </IntentField>
       </div>
     </Panel>
