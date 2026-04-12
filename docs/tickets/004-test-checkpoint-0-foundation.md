@@ -1,7 +1,7 @@
 # [TICKET-004] TEST: Checkpoint 0 — Foundation Scaffold
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #003 ✅
@@ -12,20 +12,20 @@ This checkpoint verifies that the BridgeOS foundation is solid before building U
 This is a gate for Phase 2 (Core UI Components). All Phase 2 tickets depend on this checkpoint passing. If the foundation has issues — wrong colors, broken fonts, misaligned corridors — they must be fixed here before component work begins.
 
 ## Acceptance Criteria
-- [ ] `npm run dev` starts the Tauri application without errors
-- [ ] `npm run build` completes without errors or warnings
-- [ ] The Tauri window opens and renders the React frontend
-- [ ] All CSS custom properties from DESIGN.md § 2 resolve to correct hex values (spot-check at least 10 tokens)
-- [ ] Inter font renders at weights 400, 500, 600 with correct OpenType features
-- [ ] JetBrains Mono renders for code content
-- [ ] Tabular numbers align vertically in a test column
-- [ ] Token showcase page (`/tokens`) displays all colors, typography, and spacing correctly
-- [ ] Corridor renders at 480px, 560px, and 640px max-widths
-- [ ] Corridor is anchored to screen edge with 16px margin
-- [ ] Warm panel (`#f9f3ea`), cool panel (`#edf1f4`), and deep panel (`#dfe4e8`) surfaces render with correct colors
-- [ ] Panel borders are 1px solid `#cdd3da` — no box-shadows
-- [ ] Noise texture overlay is present on panel surfaces (inspect `::after` pseudo-element)
-- [ ] Page background is `#f7f5f2` (warm neutral, not pure white)
+- [x] `npm run dev` starts the Tauri application without errors
+- [x] `npm run build` completes without errors or warnings
+- [x] The Tauri window opens and renders the React frontend
+- [x] All CSS custom properties from DESIGN.md § 2 resolve to correct hex values (spot-check at least 10 tokens)
+- [x] Inter font renders at weights 400, 500, 600 with correct OpenType features
+- [x] JetBrains Mono renders for code content
+- [x] Tabular numbers align vertically in a test column
+- [x] Token showcase page (`/tokens`) displays all colors, typography, and spacing correctly
+- [x] Corridor renders at 480px, 560px, and 640px max-widths
+- [x] Corridor is anchored to screen edge with 16px margin
+- [x] Warm panel (`#f9f3ea`), cool panel (`#edf1f4`), and deep panel (`#dfe4e8`) surfaces render with correct colors
+- [x] Panel borders are 1px solid `#cdd3da` — no box-shadows
+- [x] Noise texture overlay is present on panel surfaces (inspect `::after` pseudo-element)
+- [x] Page background is `#f7f5f2` (warm neutral, not pure white)
 
 ## Implementation Notes
 This is a manual test execution ticket — no code changes unless bugs are found during testing.

@@ -1,10 +1,10 @@
 # [TICKET-006] VoiceBar Component
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #004
+- Requires: #004 ✅
 
 ## Description
 Build the VoiceBar — the dedicated live voice interaction strip for BridgeOS. This component handles the conversational presence layer: displaying the live transcript, showing who holds the conversational turn, indicating voice activity, and providing mute/hold/interrupt controls. The VoiceBar must make the system feel alive and responsive while clearly distinguishing between "heard something," "user still talking," "ready to respond," and "speaking now."

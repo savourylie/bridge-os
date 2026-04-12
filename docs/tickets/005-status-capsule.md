@@ -1,10 +1,10 @@
 # [TICKET-005] StatusCapsule Component
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #004
+- Requires: #004 ✅
 
 ## Description
 Build the StatusCapsule — a small, persistent desktop pill that indicates the current BridgeOS system state. This is the always-visible anchor point for the interface. It floats above the desktop as a compact capsule showing a state indicator dot and the system wordmark, and serves as the entry point into the full TaskPanel.

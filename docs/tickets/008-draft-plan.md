@@ -1,10 +1,10 @@
 # [TICKET-008] DraftPlan Component
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #004
+- Requires: #004 ✅
 
 ## Description
 Build the DraftPlan — a lightweight plan preview that appears before any meaningful execution starts. This component shows users that the system has understood enough to prepare an approach but has not yet taken action. The prominent "Execution: Not started" indicator is a critical trust mechanism that prevents users from worrying about premature execution.

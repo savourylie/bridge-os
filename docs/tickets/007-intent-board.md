@@ -1,10 +1,10 @@
 # [TICKET-007] IntentBoard Component
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #004
+- Requires: #004 ✅
 
 ## Description
 Build the IntentBoard — one of BridgeOS's most important differentiators. This structured, pre-execution panel mirrors what the system currently believes the user wants, making intent legible before any action begins. It displays the goal, scope, constraints, exclusions, unresolved questions, and execution status in a clear, labeled format that updates incrementally during conversation.

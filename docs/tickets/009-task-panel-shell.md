@@ -1,10 +1,10 @@
 # [TICKET-009] TaskPanel Shell
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #004
+- Requires: #004 ✅
 
 ## Description
 Build the TaskPanel — the main execution surface container that houses all task-related UI components. It renders as a right-side slide-over panel that remains visible alongside the desktop, allowing users to continue working while monitoring the system. This ticket builds the panel shell, including the TaskHeader and TaskMetaRow sub-components, with slot areas for child components (IntentBoard, DraftPlan, Timeline, etc.).
