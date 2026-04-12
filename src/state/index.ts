@@ -13,12 +13,40 @@ export {
   type ConversationState,
 } from "@/state/conversation"
 export {
+  useApproval,
+  useConversationState,
+  useCurrentTask,
+  useEventHistory,
+  useExecutionState,
+  useTimeline,
+} from "@/state/hooks"
+export {
   EXECUTION_STATES,
   executionStateMachine,
   createExecutionMachine,
   type ExecutionEvent,
   type ExecutionState,
 } from "@/state/execution"
+export type {
+  ApprovalRequestSnapshot,
+  ApprovalSnapshot,
+  BridgeEvent,
+  CompletionChanges,
+  CompletionSnapshot,
+  ConversationSlice,
+  CurrentTaskSnapshot,
+  EventHistoryEntry,
+  ExecutionProgress,
+  ExecutionSlice,
+  IntentQuestion,
+  IntentSnapshot,
+  PlanSnapshot,
+  PlanState,
+  PlanStepSnapshot,
+  RiskLevel,
+  TimedBridgeEvent,
+  TimelineStepSnapshot,
+} from "@/state/events"
 export {
   createStateMachineDefinition,
   type MachineDefinition,
@@ -27,12 +55,31 @@ export {
   type TransitionTable,
 } from "@/state/machine"
 export {
+  cancel,
+  createMockEventDispatcher,
+  mockEventDispatcher,
+  play,
+  step,
+  type MockEventDispatcher,
+} from "@/state/mock-dispatcher"
+export {
   createStepMachine,
   STEP_STATES,
   stepStateMachine,
   type StepEvent,
   type StepState,
 } from "@/state/step"
+export {
+  bridgeStore,
+  createBridgeStore,
+  deriveExecutionProgress,
+  dispatchBridgeEvent,
+  resetBridgeStore,
+  type BridgeStoreApi,
+  type BridgeStoreData,
+  type BridgeStoreState,
+  type CreateBridgeStoreOptions,
+} from "@/state/store"
 export {
   createTaskMachine,
   TASK_STATES,
