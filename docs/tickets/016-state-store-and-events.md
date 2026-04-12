@@ -1,7 +1,7 @@
 # [TICKET-016] State Store & Event System
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #015 ✅
@@ -10,13 +10,13 @@
 Build the centralized state store and event system that powers BridgeOS's UI. The store manages all application state (conversation, execution, tasks, steps, approvals) and exposes it to React components via hooks. The event system follows the event-driven architecture recommended in TECH_STACK.md, where state changes are triggered by events (transcript_updated, intent_updated, plan_drafted, approval_requested, step_completed, etc.) rather than direct state mutations.
 
 ## Acceptance Criteria
-- [ ] Centralized state store holds: conversation state, execution state, current task, task steps, approval state, transcript, intent fields, draft plan
-- [ ] State changes are triggered by typed events (e.g., `{ type: "TRANSCRIPT_UPDATED", payload: { text: string } }`)
-- [ ] React hooks provide component access to state slices: `useConversationState()`, `useExecutionState()`, `useCurrentTask()`, `useTimeline()`, `useApproval()`
-- [ ] State transitions are validated through the state machines from #015
-- [ ] Event history is maintained for debugging and future audit trail support
-- [ ] State updates trigger efficient React re-renders (only affected components re-render)
-- [ ] Mock event dispatcher can fire sequences of events for demo/testing purposes
+- [x] Centralized state store holds: conversation state, execution state, current task, task steps, approval state, transcript, intent fields, draft plan
+- [x] State changes are triggered by typed events (e.g., `{ type: "TRANSCRIPT_UPDATED", payload: { text: string } }`)
+- [x] React hooks provide component access to state slices: `useConversationState()`, `useExecutionState()`, `useCurrentTask()`, `useTimeline()`, `useApproval()`
+- [x] State transitions are validated through the state machines from #015
+- [x] Event history is maintained for debugging and future audit trail support
+- [x] State updates trigger efficient React re-renders (only affected components re-render)
+- [x] Mock event dispatcher can fire sequences of events for demo/testing purposes
 
 ## Implementation Notes
 - Use Zustand for the state store — it's lightweight, TypeScript-friendly, and works well with React

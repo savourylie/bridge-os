@@ -1,10 +1,10 @@
 # [TICKET-017] Wire UI to State & Mock Interaction Demo
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #016
+- Requires: #016 ✅
 
 ## Description
 Connect all UI components to the state store and build a mock interaction demo that walks through a complete BridgeOS task flow using simulated events. This ticket bridges the static components from Phases 2-3 with the state management from Phase 4, creating the first interactive prototype of the BridgeOS experience. The demo should simulate the "Organize Downloads" user flow from UX_DESIGN.md.
