@@ -1,7 +1,7 @@
 # [TICKET-005] StatusCapsule Component
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #004 ✅
@@ -10,16 +10,16 @@
 Build the StatusCapsule — a small, persistent desktop pill that indicates the current BridgeOS system state. This is the always-visible anchor point for the interface. It floats above the desktop as a compact capsule showing a state indicator dot and the system wordmark, and serves as the entry point into the full TaskPanel.
 
 ## Acceptance Criteria
-- [ ] StatusCapsule renders as a pill shape (24px border-radius) at 120-160px width and 40px height
-- [ ] Contains an 8px state indicator dot (radius 9999px) and "BridgeOS" wordmark (Inter 12px weight 600)
-- [ ] State dot color changes based on system state: amber `#cc7a00` (idle-ready), teal `#2a9d8f` (background-active), muted `#7a8494` (dormant)
-- [ ] State dot has a breathing animation (scale 1.0 → 1.05 → 1.0 on a 2s ease-in-out loop) when idle-ready
-- [ ] StatusCapsule has a subtle box-shadow (`0 2px 8px rgba(26, 29, 33, 0.08)`) — the only shadowed element in the system
-- [ ] Background shifts from cool `#edf1f4` (idle) to warm `#f9f3ea` (conversational)
-- [ ] Border is `1px solid #cdd3da`
-- [ ] Fixed position on the desktop with 16px margin from screen edge
-- [ ] Capsule is clickable (click target covers full capsule area, minimum 40px height)
-- [ ] Supports all 9 states from UX spec: idle, listening, understanding, planning, waiting_approval, executing, paused, completed, failed
+- [x] StatusCapsule renders as a pill shape (24px border-radius) at 120-160px width and 40px height
+- [x] Contains an 8px state indicator dot (radius 9999px) and "BridgeOS" wordmark (Inter 12px weight 600)
+- [x] State dot color changes based on system state: amber `#cc7a00` (idle-ready), teal `#2a9d8f` (background-active), muted `#7a8494` (dormant)
+- [x] State dot has a breathing animation (scale 1.0 → 1.05 → 1.0 on a 2s ease-in-out loop) when idle-ready
+- [x] StatusCapsule has a subtle box-shadow (`0 2px 8px rgba(26, 29, 33, 0.08)`) — the only shadowed element in the system
+- [x] Background shifts from cool `#edf1f4` (idle) to warm `#f9f3ea` (conversational)
+- [x] Border is `1px solid #cdd3da`
+- [x] Fixed position on the desktop with 16px margin from screen edge
+- [x] Capsule is clickable (click target covers full capsule area, minimum 40px height)
+- [x] Supports all 9 states from UX spec: idle, listening, understanding, planning, waiting_approval, executing, paused, completed, failed
 
 ## Design Reference
 - **Component**: DESIGN.md § 4 (Component Stylings > Navigation > StatusCapsule)
