@@ -10,6 +10,7 @@ import DraftPlanPage from "@/pages/DraftPlan";
 import TaskPanelPage from "@/pages/TaskPanel";
 import TimelinePage from "@/pages/Timeline";
 import ApprovalCardPage from "@/pages/ApprovalCard";
+import CompletionSummaryPage from "@/pages/CompletionSummary";
 import { Link } from "react-router-dom";
 
 function Home() {
@@ -73,6 +74,9 @@ function Home() {
         <Link to="/components/approval-card" className="type-caption text-link hover:underline">
           View ApprovalCard
         </Link>
+        <Link to="/components/completion-summary" className="type-caption text-link hover:underline">
+          View CompletionSummary
+        </Link>
       </motion.div>
     </div>
   );
@@ -91,6 +95,7 @@ function App() {
       <Route path="/components/task-panel" element={<TaskPanelPage />} />
       <Route path="/components/timeline" element={<TimelinePage />} />
       <Route path="/components/approval-card" element={<ApprovalCardPage />} />
+      <Route path="/components/completion-summary" element={<CompletionSummaryPage />} />
     </Routes>
   );
 }
