@@ -1,7 +1,7 @@
 # [TICKET-002] Design Tokens & Theme System
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #001 ✅
@@ -10,14 +10,14 @@
 Implement the BridgeOS design token system as CSS custom properties and Tailwind configuration, translating the full color palette, typography scale, spacing system, and border radius scale from DESIGN.md into reusable, consistent tokens. This ticket establishes the visual foundation that every UI component will reference.
 
 ## Acceptance Criteria
-- [ ] All color tokens from DESIGN.md are defined as CSS custom properties (e.g., `--color-brand: #cc7a00`, `--bg-page: #f7f5f2`, etc.)
-- [ ] Tailwind config extends the theme to reference these CSS variables for colors, spacing, and typography
-- [ ] Inter font (weights 400, 500, 600) and JetBrains Mono (weight 400) are loaded and available
-- [ ] OpenType features `cv01`, `cv02`, `ss01`, `tnum` are enabled globally for Inter
-- [ ] The full typography scale (Display Hero through Caption) is defined as reusable utility classes or components
-- [ ] The 8px spacing scale (2, 4, 8, 12, 16, 20, 24, 32, 48, 64) is configured in Tailwind
-- [ ] Border radius scale (4px, 8px, 24px, 9999px) is configured in Tailwind
-- [ ] A token showcase page at `/tokens` displays all colors, type styles, and spacing values for visual verification
+- [x] All color tokens from DESIGN.md are defined as CSS custom properties (e.g., `--color-brand: #cc7a00`, `--bg-page: #f7f5f2`, etc.)
+- [x] Tailwind config extends the theme to reference these CSS variables for colors, spacing, and typography
+- [x] Inter font (weights 400, 500, 600) and JetBrains Mono (weight 400) are loaded and available
+- [x] OpenType features `cv01`, `cv02`, `ss01`, `tnum` are enabled globally for Inter
+- [x] The full typography scale (Display Hero through Caption) is defined as reusable utility classes or components
+- [x] The 8px spacing scale (2, 4, 8, 12, 16, 20, 24, 32, 48, 64) is configured in Tailwind
+- [x] Border radius scale (4px, 8px, 24px, 9999px) is configured in Tailwind
+- [x] A token showcase page at `/tokens` displays all colors, type styles, and spacing values for visual verification
 
 ## Design Reference
 - **Tokens**: DESIGN.md § 2 (Color Palette & Roles) — all primary, surface, neutral, interactive, semantic, and film-specific tokens

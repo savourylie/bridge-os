@@ -1,10 +1,10 @@
 # [TICKET-003] Corridor Layout & Surface System
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #002
+- Requires: #002 ✅
 
 ## Description
 Implement the corridor composition layout system and warm/cool surface treatments that define BridgeOS's visual architecture. The interface uses a narrow vertical corridor (480px → 560px → 640px) that floats over the desktop, with warm surfaces for conversational states and cool surfaces for operational states. This ticket builds the layout primitives that all subsequent UI components nest within.
