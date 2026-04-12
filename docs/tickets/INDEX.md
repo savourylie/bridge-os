@@ -7,9 +7,9 @@
 
 | Status        | Count |
 | ------------- | ----- |
-| ✅ Done        | 11    |
+| ✅ Done        | 12    |
 | 🔧 In Progress | 0     |
-| 📋 Pending     | 2     |
+| 📋 Pending     | 1     |
 | 🚫 Blocked     | 23    |
 | ⏸️ Deferred    | 0     |
 
@@ -42,7 +42,7 @@
 | #   | Ticket                                                                                     | Status    | Depends On       | Notes |
 | --- | ------------------------------------------------------------------------------------------ | --------- | ---------------- | ----- |
 | 011 | [Timeline & Step Cards](./011-timeline-and-step-cards.md)                                  | `done`    | #010 ✅          | Timeline & step cards complete |
-| 012 | [ApprovalCard](./012-approval-card.md)                                                     | `pending` | #010 ✅          | Unblocked |
+| 012 | [ApprovalCard](./012-approval-card.md)                                                     | `done`    | #010 ✅          | ApprovalCard complete |
 | 013 | [CompletionSummary](./013-completion-summary.md)                                           | `pending` | #010 ✅          | Unblocked |
 | 014 | [**TEST: Checkpoint 2 — Execution UI**](./014-test-checkpoint-2-execution-ui.md)           | `blocked` | #011–#013        | Gate: Phase 3 |
 

@@ -1,7 +1,7 @@
 # [TICKET-012] ApprovalCard Component
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #010 ✅
@@ -10,18 +10,18 @@
 Build the ApprovalCard — a clear, serious approval gate that interrupts the normal timeline flow for sensitive actions. This "monolith" component uses a deeper surface, thicker border, and amber accent to visually break the regular step card rhythm, signaling that user attention and explicit confirmation are required before proceeding. The ApprovalCard must explain what the system wants to do, why approval is needed, and what the impact will be.
 
 ## Acceptance Criteria
-- [ ] ApprovalCard uses deep surface `#dfe4e8`, `2px solid #cdd3da` border, 8px radius, 24px padding
-- [ ] 3px left border in amber `#cc7a00` (attention stripe)
-- [ ] Header "Approval Required" in Heading 3 (Inter 16px weight 600, `#1a1d21`)
-- [ ] Action description in Body typography (Inter 14px weight 400, `#3d4550`)
-- [ ] "This action will" list showing what the action affects
-- [ ] "This action will not" list showing what is unaffected (when provided)
-- [ ] Impact summary in Body Small (Inter 13px weight 400, `#7a8494`)
-- [ ] Primary "Approve" button: amber `#cc7a00` background, white text, 8px radius, 10px 20px padding
-- [ ] Ghost "Deny" button: `#7a8494` text, no border, 10px 16px padding
-- [ ] Approve button hover darkens to `#b36b00`, deny hover darkens text to `#3d4550`
-- [ ] Focus ring on buttons: `0 0 0 3px rgba(204, 122, 0, 0.35)`
-- [ ] Command preview shows in monospace (JetBrains Mono 13px) when a command will be executed
+- [x] ApprovalCard uses deep surface `#dfe4e8`, `2px solid #cdd3da` border, 8px radius, 24px padding
+- [x] 3px left border in amber `#cc7a00` (attention stripe)
+- [x] Header "Approval Required" in Heading 3 (Inter 16px weight 600, `#1a1d21`)
+- [x] Action description in Body typography (Inter 14px weight 400, `#3d4550`)
+- [x] "This action will" list showing what the action affects
+- [x] "This action will not" list showing what is unaffected (when provided)
+- [x] Impact summary in Body Small (Inter 13px weight 400, `#7a8494`)
+- [x] Primary "Approve" button: amber `#cc7a00` background, white text, 8px radius, 10px 20px padding
+- [x] Ghost "Deny" button: `#7a8494` text, no border, 10px 16px padding
+- [x] Approve button hover darkens to `#b36b00`, deny hover darkens text to `#3d4550`
+- [x] Focus ring on buttons: `0 0 0 3px rgba(204, 122, 0, 0.35)`
+- [x] Command preview shows in monospace (JetBrains Mono 13px) when a command will be executed
 
 ## Design Reference
 - **Approval Gate**: DESIGN.md § 4 (Cards & Containers > Approval Gate Monolith)

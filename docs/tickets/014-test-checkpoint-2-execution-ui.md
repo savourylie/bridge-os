@@ -4,7 +4,7 @@
 `blocked`
 
 ## Dependencies
-- Requires: #011 ✅, #012, #013
+- Requires: #011 ✅, #012 ✅, #013
 
 ## Description
 This checkpoint verifies that the execution and completion UI components are visually correct and integrate coherently within the TaskPanel. Phase 3 components (Timeline, ApprovalCard, CompletionSummary) must work alongside Phase 2 components (IntentBoard, DraftPlan) inside the TaskPanel shell, creating the full execution surface described in the UX spec.
