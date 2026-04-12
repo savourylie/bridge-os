@@ -5,6 +5,7 @@ import TokensPage from "@/pages/Tokens";
 import LayoutPage from "@/pages/Layout";
 import StatusCapsulePage from "@/pages/StatusCapsule";
 import VoiceBarPage from "@/pages/VoiceBar";
+import IntentBoardPage from "@/pages/IntentBoard";
 import { Link } from "react-router-dom";
 
 function Home() {
@@ -53,6 +54,9 @@ function Home() {
         <Link to="/components/voice-bar" className="type-caption text-link hover:underline">
           View VoiceBar
         </Link>
+        <Link to="/components/intent-board" className="type-caption text-link hover:underline">
+          View IntentBoard
+        </Link>
       </motion.div>
     </div>
   );
@@ -66,6 +70,7 @@ function App() {
       <Route path="/layout" element={<LayoutPage />} />
       <Route path="/components/status-capsule" element={<StatusCapsulePage />} />
       <Route path="/components/voice-bar" element={<VoiceBarPage />} />
+      <Route path="/components/intent-board" element={<IntentBoardPage />} />
     </Routes>
   );
 }
