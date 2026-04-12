@@ -1,10 +1,10 @@
 # [TICKET-020] Tauri IPC Bridge
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #019
+- Requires: #019 ✅
 
 ## Description
 Implement the Tauri IPC bridge that connects the React frontend to the Rust backend runtime. This defines the command interface and event channel through which the frontend dispatches user actions (voice input, approvals, control commands) and the backend emits state updates (transcript updates, intent changes, execution progress). The IPC bridge is the communication spine of BridgeOS.

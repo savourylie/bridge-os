@@ -1,10 +1,10 @@
 # [TICKET-022] Policy Engine
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #019
+- Requires: #019 ✅
 
 ## Description
 Implement the policy engine — the module that classifies action risk levels and determines when approval is required. This is central to BridgeOS's trust model: it ensures sensitive actions are surfaced before they happen, not after. The engine evaluates proposed actions against a risk taxonomy and permission boundaries, emitting approval requests when thresholds are met.

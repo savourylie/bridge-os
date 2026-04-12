@@ -7,10 +7,10 @@
 
 | Status        | Count |
 | ------------- | ----- |
-| ✅ Done        | 18    |
+| ✅ Done        | 19    |
 | 🔧 In Progress | 0     |
-| 📋 Pending     | 1     |
-| 🚫 Blocked     | 17    |
+| 📋 Pending     | 2     |
+| 🚫 Blocked     | 15    |
 | ⏸️ Deferred    | 0     |
 
 ---
@@ -59,10 +59,10 @@
 
 | #   | Ticket                                                                                     | Status    | Depends On       | Notes |
 | --- | ------------------------------------------------------------------------------------------ | --------- | ---------------- | ----- |
-| 019 | [Rust Project Structure](./019-rust-project-structure.md)                                  | `pending` | #018 ✅          | Unblocked — #018 now done |
-| 020 | [Tauri IPC Bridge](./020-tauri-ipc-bridge.md)                                              | `blocked` | #019             |       |
+| 019 | [Rust Project Structure](./019-rust-project-structure.md)                                  | `done`    | #018 ✅          | Workspace foundation complete |
+| 020 | [Tauri IPC Bridge](./020-tauri-ipc-bridge.md)                                              | `pending` | #019 ✅          | Unblocked — #019 now done |
 | 021 | [Conversation Runtime (Rust)](./021-conversation-runtime.md)                                | `blocked` | #020             |       |
-| 022 | [Policy Engine](./022-policy-engine.md)                                                    | `blocked` | #019             |       |
+| 022 | [Policy Engine](./022-policy-engine.md)                                                    | `pending` | #019 ✅          | Unblocked — #019 now done |
 | 023 | [**TEST: Checkpoint 4 — Rust Runtime**](./023-test-checkpoint-4-rust-runtime.md)           | `blocked` | #020–#022        | Gate: Phase 5 |
 
 ## Phase 6 — Orchestration & Mock Adapters

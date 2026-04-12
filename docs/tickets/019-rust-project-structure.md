@@ -1,7 +1,7 @@
 # [TICKET-019] Rust Project Structure & Crate Layout
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #018 ✅
@@ -10,7 +10,7 @@
 Set up the Rust crate structure for BridgeOS's backend runtime. This establishes the modular architecture recommended in TECH_STACK.md, with separate crates for conversation runtime, orchestration runtime, policy engine, task models, audit log, and adapter interfaces. The crate layout enforces clean boundaries between the presentation layer, core logic, and platform-specific integrations.
 
 ## Acceptance Criteria
-- [ ] Cargo workspace is configured with the following crates:
+- [x] Cargo workspace is configured with the following crates:
   - `crates/conversation_runtime` — wake state, transcript, turn-taking
   - `crates/orchestration_runtime` — intent, planning, task execution
   - `crates/policy_engine` — risk classification, permissions, approval triggers
@@ -18,11 +18,11 @@ Set up the Rust crate structure for BridgeOS's backend runtime. This establishes
   - `crates/audit_log` — event logging for task traces
   - `crates/adapters` — trait definitions for platform adapters
   - `crates/mock_adapters` — mock implementations for macOS development
-- [ ] Each crate compiles independently with `cargo build`
-- [ ] `crates/task_models` defines shared types used across other crates (Intent, Plan, Task, Step, etc.)
-- [ ] `crates/adapters` defines trait interfaces: `FileSystemAdapter`, `VoiceAdapter`, `PrivilegeAdapter`, `PackageManagerAdapter`, `DesktopAdapter`
-- [ ] The Tauri app's `src-tauri` references the workspace crates
-- [ ] `cargo test` runs across all crates without errors
+- [x] Each crate compiles independently with `cargo build`
+- [x] `crates/task_models` defines shared types used across other crates (Intent, Plan, Task, Step, etc.)
+- [x] `crates/adapters` defines trait interfaces: `FileSystemAdapter`, `VoiceAdapter`, `PrivilegeAdapter`, `PackageManagerAdapter`, `DesktopAdapter`
+- [x] The Tauri app's `src-tauri` references the workspace crates
+- [x] `cargo test` runs across all crates without errors
 
 ## Implementation Notes
 - Use a Cargo workspace at the project root with `members = ["crates/*", "apps/desktop/src-tauri"]`
