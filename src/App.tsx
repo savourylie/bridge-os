@@ -9,6 +9,7 @@ import IntentBoardPage from "@/pages/IntentBoard";
 import DraftPlanPage from "@/pages/DraftPlan";
 import TaskPanelPage from "@/pages/TaskPanel";
 import TimelinePage from "@/pages/Timeline";
+import ApprovalCardPage from "@/pages/ApprovalCard";
 import { Link } from "react-router-dom";
 
 function Home() {
@@ -69,6 +70,9 @@ function Home() {
         <Link to="/components/timeline" className="type-caption text-link hover:underline">
           View Timeline
         </Link>
+        <Link to="/components/approval-card" className="type-caption text-link hover:underline">
+          View ApprovalCard
+        </Link>
       </motion.div>
     </div>
   );
@@ -86,6 +90,7 @@ function App() {
       <Route path="/components/draft-plan" element={<DraftPlanPage />} />
       <Route path="/components/task-panel" element={<TaskPanelPage />} />
       <Route path="/components/timeline" element={<TimelinePage />} />
+      <Route path="/components/approval-card" element={<ApprovalCardPage />} />
     </Routes>
   );
 }
