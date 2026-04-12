@@ -1,28 +1,20 @@
+import { Routes, Route } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import TokensPage from "@/pages/Tokens";
+import { Link } from "react-router-dom";
 
-function App() {
+function Home() {
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center gap-8"
-      style={{
-        backgroundColor: "#f7f5f2",
-        fontFamily: "Inter, system-ui, -apple-system, sans-serif",
-      }}
-    >
+    <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-page">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="text-center"
       >
-        <h1
-          className="text-4xl font-semibold tracking-tight"
-          style={{ color: "#1a1d21" }}
-        >
-          BridgeOS
-        </h1>
-        <p className="mt-3 text-base" style={{ color: "#3d4550" }}>
+        <h1 className="type-display-hero text-ink">BridgeOS</h1>
+        <p className="mt-3 type-body-lg text-body-text">
           Speak naturally. Stay in command.
         </p>
       </motion.div>
@@ -32,10 +24,7 @@ function App() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
       >
-        <Button
-          className="text-white cursor-pointer"
-          style={{ backgroundColor: "#cc7a00" }}
-        >
+        <Button className="cursor-pointer bg-brand text-white hover:bg-brand-hover">
           Initialize
         </Button>
       </motion.div>
@@ -44,12 +33,25 @@ function App() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.6 }}
-        className="text-xs"
-        style={{ color: "#7a8494" }}
+        className="flex flex-col items-center gap-2"
       >
-        Foundation scaffold — TICKET-001
+        <span className="type-caption text-subtle">
+          Foundation scaffold — TICKET-001
+        </span>
+        <Link to="/tokens" className="type-caption text-link hover:underline">
+          View Design Tokens
+        </Link>
       </motion.div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/tokens" element={<TokensPage />} />
+    </Routes>
   );
 }
 

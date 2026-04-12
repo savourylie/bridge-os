@@ -1,130 +1,266 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "@fontsource-variable/inter";
+@import "@fontsource/jetbrains-mono";
 
 @custom-variant dark (&:is(.dark *));
 
+/* =========================================================================
+   BridgeOS Design Token System
+   Source: docs/design/DESIGN.md
+   ========================================================================= */
+
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
-    --color-chart-1: var(--chart-1);
-    --color-ring: var(--ring);
-    --color-input: var(--input);
-    --color-border: var(--border);
-    --color-destructive: var(--destructive);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-secondary: var(--secondary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary: var(--primary);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-popover: var(--popover);
-    --color-card-foreground: var(--card-foreground);
-    --color-card: var(--card);
-    --color-foreground: var(--foreground);
-    --color-background: var(--background);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+  /* --- Font families ---------------------------------------------------- */
+  --font-sans: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-heading: var(--font-sans);
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* --- Colors: BridgeOS palette ----------------------------------------- */
+  /* Primary */
+  --color-brand: #cc7a00;
+  --color-brand-hover: #b36b00;
+  --color-brand-active: #9a5c00;
+  --color-teal: #2a9d8f;
+  --color-teal-hover: #228577;
+
+  /* Surface & Background */
+  --color-page: #f7f5f2;
+  --color-surface: #edf1f4;
+  --color-surface-warm: #f9f3ea;
+  --color-surface-deep: #dfe4e8;
+
+  /* Neutrals & Text */
+  --color-ink: #1a1d21;
+  --color-body-text: #3d4550;
+  --color-subtle: #7a8494;
+  --color-hairline: #cdd3da;
+  --color-divider: #e4e8ec;
+
+  /* Interactive */
+  --color-link: #cc7a00;
+  --color-focus-ring: rgba(204, 122, 0, 0.35);
+
+  /* Semantic */
+  --color-success: #2a9d8f;
+  --color-warning: #cc7a00;
+  --color-error: #c44536;
+  --color-info: #4a7fb5;
+
+  /* --- Colors: shadcn compatibility ------------------------------------- */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent-compat);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* --- Border radius scale (DESIGN.md § 5) ------------------------------ */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 24px;
+  --radius-xl: 24px;
+  --radius-2xl: 24px;
+  --radius-3xl: 24px;
+  --radius-4xl: 24px;
 }
+
+/* =========================================================================
+   CSS Custom Properties — DESIGN.md named tokens
+   These match the exact variable names specified in DESIGN.md § 2
+   ========================================================================= */
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+  /* --- Primary ---------------------------------------------------------- */
+  --color-brand: #cc7a00;
+  --color-accent: #2a9d8f;
+
+  /* --- Surface & Background --------------------------------------------- */
+  --bg-page: #f7f5f2;
+  --bg-surface: #edf1f4;
+  --bg-surface-warm: #f9f3ea;
+  --bg-muted: #dfe4e8;
+
+  /* --- Neutrals & Text -------------------------------------------------- */
+  --text-primary: #1a1d21;
+  --text-secondary: #3d4550;
+  --text-tertiary: #7a8494;
+  --border-default: #cdd3da;
+  --border-subtle: #e4e8ec;
+
+  /* --- Interactive ------------------------------------------------------- */
+  --focus-ring: rgba(204, 122, 0, 0.35);
+  --brand-hover: #b36b00;
+  --accent-hover: #228577;
+  --link-color: #cc7a00;
+
+  /* --- Semantic ---------------------------------------------------------- */
+  --color-success: #2a9d8f;
+  --color-warning: #cc7a00;
+  --color-error: #c44536;
+  --color-info: #4a7fb5;
+
+  /* --- Film-specific: register temperature ------------------------------ */
+  --glow-warm: rgba(201, 169, 110, 0.04);
+  --glow-cool: rgba(58, 79, 92, 0.05);
+  --texture-noise: 0.5%;
+
+  /* --- shadcn base variables → BridgeOS values -------------------------- */
+  --background: #f7f5f2;
+  --foreground: #1a1d21;
+  --card: #edf1f4;
+  --card-foreground: #1a1d21;
+  --popover: #edf1f4;
+  --popover-foreground: #1a1d21;
+  --primary: #cc7a00;
+  --primary-foreground: #ffffff;
+  --secondary: #edf1f4;
+  --secondary-foreground: #1a1d21;
+  --muted: #dfe4e8;
+  --muted-foreground: #7a8494;
+  --accent-compat: #2a9d8f;
+  --accent-foreground: #ffffff;
+  --destructive: #c44536;
+  --border: #cdd3da;
+  --input: #cdd3da;
+  --ring: rgba(204, 122, 0, 0.35);
+  --radius: 8px;
 }
 
-.dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
-}
+/* =========================================================================
+   Global base styles
+   ========================================================================= */
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
-  body {
-    @apply bg-background text-foreground;
-    }
+  }
+
   html {
     @apply font-sans;
-    }
+    font-feature-settings: "cv01", "cv02", "ss01", "tnum";
+  }
+
+  body {
+    @apply bg-page text-body-text;
+  }
+}
+
+/* =========================================================================
+   Typography scale — DESIGN.md § 3
+   ========================================================================= */
+
+@layer components {
+  /* Display Hero — 32px/600 — Goal statement in IntentBoard */
+  .type-display-hero {
+    font-family: var(--font-sans);
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.48px;
+  }
+
+  /* Heading 1 — 24px/600 — View titles, task names */
+  .type-h1 {
+    font-family: var(--font-sans);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.20;
+    letter-spacing: -0.36px;
+  }
+
+  /* Heading 2 — 20px/600 — Panel section headings */
+  .type-h2 {
+    font-family: var(--font-sans);
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.30px;
+  }
+
+  /* Heading 3 — 16px/600 — Sub-headings within panels */
+  .type-h3 {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.30;
+    letter-spacing: -0.16px;
+  }
+
+  /* Body Large — 16px/400 — Transcript text, conversation */
+  .type-body-lg {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.60;
+    letter-spacing: normal;
+  }
+
+  /* Body — 14px/400 — Step descriptions, field values */
+  .type-body {
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.55;
+    letter-spacing: normal;
+  }
+
+  /* Body Small — 13px/400 — Impact summaries, secondary copy */
+  .type-body-sm {
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.50;
+    letter-spacing: normal;
+  }
+
+  /* Label — 11px/600 — Field labels (GOAL, SCOPE), status badges */
+  .type-label {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.20;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* Caption — 11px/400 — Timestamps, metadata, "Not started" text */
+  .type-caption {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    line-height: 1.35;
+    letter-spacing: 0.04em;
+  }
+
+  /* Code — 13px/400 — Commands, file paths, package names */
+  .type-code {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.55;
+    letter-spacing: normal;
+  }
+
+  /* Button — 14px/500 — All button labels */
+  .type-button {
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.01em;
+  }
 }
