@@ -1,7 +1,7 @@
 # [TICKET-013] CompletionSummary & Rollback Indicator
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #010 ✅
@@ -10,17 +10,17 @@
 Build the CompletionSummary — a warm-surfaced panel that appears after task completion, summarizing the outcome in human-readable language. This component signals resolution by shifting back from the cool operational register to the warm conversational register. It includes a concise results summary, a list of changes made, and action buttons (Undo, View changes, Close). A simple rollback availability indicator shows whether and for how long the task can be undone.
 
 ## Acceptance Criteria
-- [ ] CompletionSummary uses warm surface `#f9f3ea`, `1px solid #e4e8ec` border, 8px radius, 24px padding
-- [ ] Header uses Heading 2 (Inter 20px weight 600, `#1a1d21`)
-- [ ] Outcome text uses Body typography (Inter 14px weight 400, `#3d4550`)
-- [ ] Changes summary shows counts: files created, modified, moved, deleted — using Body Small
-- [ ] Network activity line shown when relevant
-- [ ] "Undo" action button uses Secondary button style (amber outline)
-- [ ] "View changes" uses Secondary button style
-- [ ] "Close" uses Ghost button style
-- [ ] Rollback indicator shows availability message (e.g., "This task can be undone for the next 30 minutes.") in Caption style
-- [ ] Rollback indicator is hidden when undo is not available
-- [ ] The warm surface signals visual resolution — the register shift from cool back to warm IS the celebration (no confetti, no animated checkmarks per DESIGN.md § 7 Don'ts)
+- [x] CompletionSummary uses warm surface `#f9f3ea`, `1px solid #e4e8ec` border, 8px radius, 24px padding
+- [x] Header uses Heading 2 (Inter 20px weight 600, `#1a1d21`)
+- [x] Outcome text uses Body typography (Inter 14px weight 400, `#3d4550`)
+- [x] Changes summary shows counts: files created, modified, moved, deleted — using Body Small
+- [x] Network activity line shown when relevant
+- [x] "Undo" action button uses Secondary button style (amber outline)
+- [x] "View changes" uses Secondary button style
+- [x] "Close" uses Ghost button style
+- [x] Rollback indicator shows availability message (e.g., "This task can be undone for the next 30 minutes.") in Caption style
+- [x] Rollback indicator is hidden when undo is not available
+- [x] The warm surface signals visual resolution — the register shift from cool back to warm IS the celebration (no confetti, no animated checkmarks per DESIGN.md § 7 Don'ts)
 
 ## Design Reference
 - **Panel**: DESIGN.md § 4 (Cards & Containers > CompletionSummary Panel)

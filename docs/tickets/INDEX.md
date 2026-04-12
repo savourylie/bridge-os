@@ -7,10 +7,10 @@
 
 | Status        | Count |
 | ------------- | ----- |
-| ✅ Done        | 12    |
+| ✅ Done        | 13    |
 | 🔧 In Progress | 0     |
 | 📋 Pending     | 1     |
-| 🚫 Blocked     | 23    |
+| 🚫 Blocked     | 22    |
 | ⏸️ Deferred    | 0     |
 
 ---
@@ -43,8 +43,8 @@
 | --- | ------------------------------------------------------------------------------------------ | --------- | ---------------- | ----- |
 | 011 | [Timeline & Step Cards](./011-timeline-and-step-cards.md)                                  | `done`    | #010 ✅          | Timeline & step cards complete |
 | 012 | [ApprovalCard](./012-approval-card.md)                                                     | `done`    | #010 ✅          | ApprovalCard complete |
-| 013 | [CompletionSummary](./013-completion-summary.md)                                           | `pending` | #010 ✅          | Unblocked |
-| 014 | [**TEST: Checkpoint 2 — Execution UI**](./014-test-checkpoint-2-execution-ui.md)           | `blocked` | #011–#013        | Gate: Phase 3 |
+| 013 | [CompletionSummary](./013-completion-summary.md)                                           | `done`    | #010 ✅          | CompletionSummary complete |
+| 014 | [**TEST: Checkpoint 2 — Execution UI**](./014-test-checkpoint-2-execution-ui.md)           | `pending` | #011–#013 ✅     | Unblocked — Phase 3 components complete |
 
 ## Phase 4 — State Management & Interactive Prototype
 
