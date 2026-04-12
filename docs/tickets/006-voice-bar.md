@@ -1,7 +1,7 @@
 # [TICKET-006] VoiceBar Component
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #004 ✅
@@ -10,15 +10,15 @@
 Build the VoiceBar — the dedicated live voice interaction strip for BridgeOS. This component handles the conversational presence layer: displaying the live transcript, showing who holds the conversational turn, indicating voice activity, and providing mute/hold/interrupt controls. The VoiceBar must make the system feel alive and responsive while clearly distinguishing between "heard something," "user still talking," "ready to respond," and "speaking now."
 
 ## Acceptance Criteria
-- [ ] VoiceBar renders within the conversation corridor (480px max-width)
-- [ ] Displays a live transcript area using Body Large typography (Inter 16px weight 400, line-height 1.60)
-- [ ] Voice activity indicator renders as a 2px horizontal bar, full corridor width, in amber `#cc7a00`
-- [ ] Voice activity bar pulses width 60-100% based on a mock audio amplitude signal, with 150ms transitions
-- [ ] Bar dims to 40% opacity when no audio is detected
-- [ ] Turn state is visually distinguishable: idle, listening, user_holding_turn, ai_speaking, awaiting_clarification, barge_in_detected, muted
-- [ ] Mute/unmute control is present and functional (toggles muted state)
-- [ ] Background uses warm surface `#f9f3ea` (conversational register)
-- [ ] Warm ambient glow (radial gradient `rgba(201, 169, 110, 0.04)`) renders behind the voice activity area
+- [x] VoiceBar renders within the conversation corridor (480px max-width)
+- [x] Displays a live transcript area using Body Large typography (Inter 16px weight 400, line-height 1.60)
+- [x] Voice activity indicator renders as a 2px horizontal bar, full corridor width, in amber `#cc7a00`
+- [x] Voice activity bar pulses width 60-100% based on a mock audio amplitude signal, with 150ms transitions
+- [x] Bar dims to 40% opacity when no audio is detected
+- [x] Turn state is visually distinguishable: idle, listening, user_holding_turn, ai_speaking, awaiting_clarification, barge_in_detected, muted
+- [x] Mute/unmute control is present and functional (toggles muted state)
+- [x] Background uses warm surface `#f9f3ea` (conversational register)
+- [x] Warm ambient glow (radial gradient `rgba(201, 169, 110, 0.04)`) renders behind the voice activity area
 
 ## Design Reference
 - **Voice Indicator**: DESIGN.md § 4 (Distinctive Components > Voice Activity Indicator)
