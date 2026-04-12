@@ -1,7 +1,7 @@
 # [TICKET-017] Wire UI to State & Mock Interaction Demo
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #016 ✅
@@ -12,16 +12,16 @@ Connect all UI components to the state store and build a mock interaction demo t
 This is a critical milestone — it proves the core BridgeOS interaction loop (conversation → intent → plan → execution → completion) works as an integrated experience, even without real voice or backend.
 
 ## Acceptance Criteria
-- [ ] StatusCapsule reflects current system state from the store (idle → listening → understanding → planning → executing → completed)
-- [ ] VoiceBar displays transcript text from the store and shows correct turn state
-- [ ] IntentBoard updates incrementally as intent events fire (goal appears, then scope, then constraints)
-- [ ] DraftPlan populates with steps as plan events fire, showing "Execution: Not started" until execution begins
-- [ ] Timeline steps update their status dots and connector colors as execution events progress
-- [ ] ApprovalCard appears when an approval event fires, and proceeding depends on user clicking Approve/Deny
-- [ ] CompletionSummary appears with correct outcome data when the task completes
-- [ ] The demo auto-plays through the full "Organize Downloads" flow with realistic timing
-- [ ] A manual mode allows stepping through events one at a time
-- [ ] The demo is accessible at the app root (`/`) or a `/demo` route
+- [x] StatusCapsule reflects current system state from the store (idle → listening → understanding → planning → executing → completed)
+- [x] VoiceBar displays transcript text from the store and shows correct turn state
+- [x] IntentBoard updates incrementally as intent events fire (goal appears, then scope, then constraints)
+- [x] DraftPlan populates with steps as plan events fire, showing "Execution: Not started" until execution begins
+- [x] Timeline steps update their status dots and connector colors as execution events progress
+- [x] ApprovalCard appears when an approval event fires, and proceeding depends on user clicking Approve/Deny
+- [x] CompletionSummary appears with correct outcome data when the task completes
+- [x] The demo auto-plays through the full "Organize Downloads" flow with realistic timing
+- [x] A manual mode allows stepping through events one at a time
+- [x] The demo is accessible at the app root (`/`) or a `/demo` route
 
 ## Design Reference
 - **Flow**: UX_DESIGN.md § Primary User Flows > Flow 1: Organize Downloads

@@ -1,10 +1,10 @@
 # [TICKET-018] TEST: Checkpoint 3 — Interactive Prototype
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #017
+- Requires: #017 ✅
 
 ## Description
 This checkpoint verifies that the BridgeOS interactive prototype functions as a cohesive experience. The full UI stack (StatusCapsule through CompletionSummary) must be wired to the state store and driven by the event system. The "Organize Downloads" demo flow must run end-to-end, demonstrating the core BridgeOS interaction loop.
