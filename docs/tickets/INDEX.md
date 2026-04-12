@@ -7,10 +7,10 @@
 
 | Status        | Count |
 | ------------- | ----- |
-| ✅ Done        | 17    |
+| ✅ Done        | 18    |
 | 🔧 In Progress | 0     |
 | 📋 Pending     | 1     |
-| 🚫 Blocked     | 18    |
+| 🚫 Blocked     | 17    |
 | ⏸️ Deferred    | 0     |
 
 ---
@@ -53,13 +53,13 @@
 | 015 | [Core State Machines](./015-core-state-machines.md)                                        | `done`    | #014 ✅    | Core state machines complete |
 | 016 | [State Store & Events](./016-state-store-and-events.md)                                    | `done`    | #015 ✅    | State store & event system complete |
 | 017 | [Wire UI to State & Demo](./017-wire-ui-to-state.md)                                       | `done`    | #016 ✅    | Interactive demo complete |
-| 018 | [**TEST: Checkpoint 3 — Interactive Prototype**](./018-test-checkpoint-3-interactive-prototype.md) | `pending` | #017 ✅ | Unblocked — #017 now done |
+| 018 | [**TEST: Checkpoint 3 — Interactive Prototype**](./018-test-checkpoint-3-interactive-prototype.md) | `done` | #017 ✅ | Gate: Phase 4 — All criteria passed |
 
 ## Phase 5 — Rust Runtime & IPC
 
 | #   | Ticket                                                                                     | Status    | Depends On       | Notes |
 | --- | ------------------------------------------------------------------------------------------ | --------- | ---------------- | ----- |
-| 019 | [Rust Project Structure](./019-rust-project-structure.md)                                  | `blocked` | #018             |       |
+| 019 | [Rust Project Structure](./019-rust-project-structure.md)                                  | `pending` | #018 ✅          | Unblocked — #018 now done |
 | 020 | [Tauri IPC Bridge](./020-tauri-ipc-bridge.md)                                              | `blocked` | #019             |       |
 | 021 | [Conversation Runtime (Rust)](./021-conversation-runtime.md)                                | `blocked` | #020             |       |
 | 022 | [Policy Engine](./022-policy-engine.md)                                                    | `blocked` | #019             |       |

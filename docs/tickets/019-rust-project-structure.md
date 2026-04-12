@@ -1,10 +1,10 @@
 # [TICKET-019] Rust Project Structure & Crate Layout
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #018
+- Requires: #018 ✅
 
 ## Description
 Set up the Rust crate structure for BridgeOS's backend runtime. This establishes the modular architecture recommended in TECH_STACK.md, with separate crates for conversation runtime, orchestration runtime, policy engine, task models, audit log, and adapter interfaces. The crate layout enforces clean boundaries between the presentation layer, core logic, and platform-specific integrations.

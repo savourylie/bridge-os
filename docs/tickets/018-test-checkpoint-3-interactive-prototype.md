@@ -1,7 +1,7 @@
 # [TICKET-018] TEST: Checkpoint 3 — Interactive Prototype
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #017 ✅
@@ -12,19 +12,19 @@ This checkpoint verifies that the BridgeOS interactive prototype functions as a 
 This is a major gate — it validates the entire product interaction model before Rust runtime work begins in Phase 5. If the interaction loop doesn't feel right as a prototype, the runtime won't fix it. Product and UX issues must be addressed here.
 
 ## Acceptance Criteria
-- [ ] The demo auto-play runs the full "Organize Downloads" flow without errors or visual glitches
-- [ ] StatusCapsule transitions through all relevant states during the flow: idle → listening → understanding → planning → executing → completed
-- [ ] VoiceBar shows simulated transcript text appearing incrementally
-- [ ] IntentBoard fields populate in sequence: goal first, then scope, then constraints
-- [ ] DraftPlan shows "Execution: Not started" until execution begins
-- [ ] Timeline steps execute sequentially with correct status dot colors and connector transitions
-- [ ] ApprovalCard appears at the correct point and blocks execution until user interacts
-- [ ] Clicking "Approve" resumes execution; clicking "Deny" cancels the task
-- [ ] CompletionSummary shows correct outcome data with warm surface
-- [ ] Manual step-through mode works for each transition
-- [ ] State machines prevent invalid transitions (e.g., cannot go from "completed" directly to "listening")
-- [ ] All state transitions are recorded in the event history
-- [ ] The experience feels smooth — no jarring layout shifts, no delayed updates, no animation conflicts
+- [x] The demo auto-play runs the full "Organize Downloads" flow without errors or visual glitches
+- [x] StatusCapsule transitions through all relevant states during the flow: idle → listening → understanding → planning → executing → completed
+- [x] VoiceBar shows simulated transcript text appearing incrementally
+- [x] IntentBoard fields populate in sequence: goal first, then scope, then constraints
+- [x] DraftPlan shows "Execution: Not started" until execution begins
+- [x] Timeline steps execute sequentially with correct status dot colors and connector transitions
+- [x] ApprovalCard appears at the correct point and blocks execution until user interacts
+- [x] Clicking "Approve" resumes execution; clicking "Deny" cancels the task
+- [x] CompletionSummary shows correct outcome data with warm surface
+- [x] Manual step-through mode works for each transition
+- [x] State machines prevent invalid transitions (e.g., cannot go from "completed" directly to "listening")
+- [x] All state transitions are recorded in the event history
+- [x] The experience feels smooth — no jarring layout shifts, no delayed updates, no animation conflicts
 
 ## Implementation Notes
 This is a manual test execution ticket — no code changes unless bugs are found during testing.
