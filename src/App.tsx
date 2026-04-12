@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import TokensPage from "@/pages/Tokens";
 import LayoutPage from "@/pages/Layout";
+import StatusCapsulePage from "@/pages/StatusCapsule";
 import { Link } from "react-router-dom";
 
 function Home() {
@@ -45,6 +46,9 @@ function Home() {
         <Link to="/layout" className="type-caption text-link hover:underline">
           View Layout System
         </Link>
+        <Link to="/components/status-capsule" className="type-caption text-link hover:underline">
+          View StatusCapsule
+        </Link>
       </motion.div>
     </div>
   );
@@ -56,6 +60,7 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/tokens" element={<TokensPage />} />
       <Route path="/layout" element={<LayoutPage />} />
+      <Route path="/components/status-capsule" element={<StatusCapsulePage />} />
     </Routes>
   );
 }
