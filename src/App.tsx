@@ -6,6 +6,7 @@ import LayoutPage from "@/pages/Layout";
 import StatusCapsulePage from "@/pages/StatusCapsule";
 import VoiceBarPage from "@/pages/VoiceBar";
 import IntentBoardPage from "@/pages/IntentBoard";
+import DraftPlanPage from "@/pages/DraftPlan";
 import { Link } from "react-router-dom";
 
 function Home() {
@@ -57,6 +58,9 @@ function Home() {
         <Link to="/components/intent-board" className="type-caption text-link hover:underline">
           View IntentBoard
         </Link>
+        <Link to="/components/draft-plan" className="type-caption text-link hover:underline">
+          View DraftPlan
+        </Link>
       </motion.div>
     </div>
   );
@@ -71,6 +75,7 @@ function App() {
       <Route path="/components/status-capsule" element={<StatusCapsulePage />} />
       <Route path="/components/voice-bar" element={<VoiceBarPage />} />
       <Route path="/components/intent-board" element={<IntentBoardPage />} />
+      <Route path="/components/draft-plan" element={<DraftPlanPage />} />
     </Routes>
   );
 }
