@@ -1,7 +1,7 @@
 # [TICKET-003] Corridor Layout & Surface System
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #002 ✅
@@ -10,14 +10,14 @@
 Implement the corridor composition layout system and warm/cool surface treatments that define BridgeOS's visual architecture. The interface uses a narrow vertical corridor (480px → 560px → 640px) that floats over the desktop, with warm surfaces for conversational states and cool surfaces for operational states. This ticket builds the layout primitives that all subsequent UI components nest within.
 
 ## Acceptance Criteria
-- [ ] A `Corridor` layout component renders at the three defined max-widths (480px, 560px, 640px) controlled by a prop or variant
-- [ ] The corridor is positioned fixed relative to the screen edge with 16px margin, not centered in the viewport
-- [ ] Warm surface (`#f9f3ea`) and cool surface (`#edf1f4`) panel variants render correctly
-- [ ] Deep surface (`#dfe4e8`) variant renders for emphasis panels
-- [ ] The noise texture overlay (0.5% opacity SVG pattern) is applied as `::after` on all panel surfaces
-- [ ] Panel borders use `1px solid #cdd3da` (hairline) as the primary elevation mechanism
-- [ ] The warm ambient glow (radial gradient behind the VoiceBar area) renders subtly
-- [ ] The corridor respects the compact (<400px), standard (400-800px), and expanded (>800px) breakpoints
+- [x] A `Corridor` layout component renders at the three defined max-widths (480px, 560px, 640px) controlled by a prop or variant
+- [x] The corridor is positioned fixed relative to the screen edge with 16px margin, not centered in the viewport
+- [x] Warm surface (`#f9f3ea`) and cool surface (`#edf1f4`) panel variants render correctly
+- [x] Deep surface (`#dfe4e8`) variant renders for emphasis panels
+- [x] The noise texture overlay (0.5% opacity SVG pattern) is applied as `::after` on all panel surfaces
+- [x] Panel borders use `1px solid #cdd3da` (hairline) as the primary elevation mechanism
+- [x] The warm ambient glow (radial gradient behind the VoiceBar area) renders subtly
+- [x] The corridor respects the compact (<400px), standard (400-800px), and expanded (>800px) breakpoints
 
 ## Design Reference
 - **Layout**: DESIGN.md § 5 (Layout Principles) — corridor widths, spacing, grid, whitespace philosophy

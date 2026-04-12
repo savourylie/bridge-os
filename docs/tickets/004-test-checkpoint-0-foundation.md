@@ -1,10 +1,10 @@
 # [TICKET-004] TEST: Checkpoint 0 — Foundation Scaffold
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #003
+- Requires: #003 ✅
 
 ## Description
 This checkpoint verifies that the BridgeOS foundation is solid before building UI components on top of it. It tests that the project builds, the design token system is complete and accurate, and the corridor layout system works as specified.
