@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import TokensPage from "@/pages/Tokens";
+import LayoutPage from "@/pages/Layout";
 import { Link } from "react-router-dom";
 
 function Home() {
@@ -41,6 +42,9 @@ function Home() {
         <Link to="/tokens" className="type-caption text-link hover:underline">
           View Design Tokens
         </Link>
+        <Link to="/layout" className="type-caption text-link hover:underline">
+          View Layout System
+        </Link>
       </motion.div>
     </div>
   );
@@ -51,6 +55,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/tokens" element={<TokensPage />} />
+      <Route path="/layout" element={<LayoutPage />} />
     </Routes>
   );
 }
