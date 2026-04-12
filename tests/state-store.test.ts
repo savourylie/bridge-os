@@ -3,6 +3,7 @@
 import { act, renderHook } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { ORGANIZE_DOWNLOADS_PRE_APPROVAL_SEQUENCE } from "../src/demo/organize-downloads"
 import {
   createBridgeStore,
   createMockEventDispatcher,
@@ -16,6 +17,7 @@ import {
 import type {
   ApprovalRequestSnapshot,
   BridgeEvent,
+  TimedBridgeEvent,
   TimelineStepSnapshot,
 } from "../src/state"
 
@@ -54,6 +56,17 @@ const APPROVAL_REQUEST: ApprovalRequestSnapshot = {
   impactSummary: "Writes stay inside ~/Downloads only.",
   command:
     "bridgeos file-organize --target ~/Downloads --group-by month --exclude pdf,zip",
+}
+
+function replaySequence(
+  store: ReturnType<typeof createStoreForTests>,
+  sequence: TimedBridgeEvent[],
+) {
+  act(() => {
+    for (const timedEvent of sequence) {
+      store.getState().dispatch(timedEvent.event)
+    }
+  })
 }
 
 describe("bridge store", () => {
@@ -285,6 +298,33 @@ describe("bridge store", () => {
         event: events[3],
       },
     ])
+  })
+
+  it("replays the organize downloads checkpoint up to the approval boundary in order", () => {
+    const store = createStoreForTests()
+
+    replaySequence(store, ORGANIZE_DOWNLOADS_PRE_APPROVAL_SEQUENCE)
+
+    const state = store.getState()
+
+    expect(state.currentTask.state).toBe("executing")
+    expect(state.execution.state).toBe("executing")
+    expect(state.approval.state).toBe("requested")
+    expect(state.currentTask.plan.planState).toBe("ready")
+    expect(state.execution.progress).toEqual({
+      current: 4,
+      total: 5,
+    })
+    expect(state.timeline.map((step) => step.status)).toEqual([
+      "completed",
+      "completed",
+      "completed",
+      "waiting_approval",
+      "pending",
+    ])
+    expect(state.eventHistory.map((entry) => entry.event.type)).toEqual(
+      ORGANIZE_DOWNLOADS_PRE_APPROVAL_SEQUENCE.map((entry) => entry.event.type),
+    )
   })
 
   it("supports a full task lifecycle through completion", () => {
