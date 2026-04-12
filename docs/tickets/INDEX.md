@@ -7,9 +7,9 @@
 
 | Status        | Count |
 | ------------- | ----- |
-| ✅ Done        | 7     |
+| ✅ Done        | 8     |
 | 🔧 In Progress | 0     |
-| 📋 Pending     | 2     |
+| 📋 Pending     | 1     |
 | 🚫 Blocked     | 27    |
 | ⏸️ Deferred    | 0     |
 
@@ -33,9 +33,9 @@
 | 005 | [StatusCapsule](./005-status-capsule.md)                                                   | `done`    | #004 ✅          | StatusCapsule complete |
 | 006 | [VoiceBar](./006-voice-bar.md)                                                             | `done`    | #004 ✅          | VoiceBar complete |
 | 007 | [IntentBoard](./007-intent-board.md)                                                       | `done`    | #004 ✅          | IntentBoard complete |
-| 008 | [DraftPlan](./008-draft-plan.md)                                                           | `pending` | #004 ✅          | Unblocked |
+| 008 | [DraftPlan](./008-draft-plan.md)                                                           | `done`    | #004 ✅          | DraftPlan complete |
 | 009 | [TaskPanel Shell](./009-task-panel-shell.md)                                               | `pending` | #004 ✅          | Unblocked |
-| 010 | [**TEST: Checkpoint 1 — Core UI Components**](./010-test-checkpoint-1-core-ui.md)          | `blocked` | #005–#009        | Gate: Phase 2 — #007 ✅ |
+| 010 | [**TEST: Checkpoint 1 — Core UI Components**](./010-test-checkpoint-1-core-ui.md)          | `blocked` | #005–#009        | Gate: Phase 2 — #007 ✅, #008 ✅ |
 
 ## Phase 3 — Execution & Completion UI
 

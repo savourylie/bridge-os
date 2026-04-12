@@ -1,7 +1,7 @@
 # [TICKET-008] DraftPlan Component
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #004 ✅
@@ -10,15 +10,15 @@
 Build the DraftPlan — a lightweight plan preview that appears before any meaningful execution starts. This component shows users that the system has understood enough to prepare an approach but has not yet taken action. The prominent "Execution: Not started" indicator is a critical trust mechanism that prevents users from worrying about premature execution.
 
 ## Acceptance Criteria
-- [ ] DraftPlan renders within the intent corridor (560px max-width) with cool surface `#edf1f4`
-- [ ] Panel has 24px padding, 8px border-radius, `1px solid #cdd3da` border
-- [ ] Displays a numbered step list (1, 2, 3...) with each step as a brief description
-- [ ] Step numbers use tabular numbers (`tnum`) for vertical alignment
-- [ ] Step descriptions use Body typography (Inter 14px weight 400, `#3d4550`)
-- [ ] "Execution: Not started" status is prominently displayed at the bottom in a distinct visual treatment
-- [ ] Supports plan states: drafting, ready, approved, cancelled
-- [ ] Steps can be added incrementally (animation for new steps appearing)
-- [ ] Header uses Heading 2 style (Inter 20px weight 600)
+- [x] DraftPlan renders within the intent corridor (560px max-width) with cool surface `#edf1f4`
+- [x] Panel has 24px padding, 8px border-radius, `1px solid #cdd3da` border
+- [x] Displays a numbered step list (1, 2, 3...) with each step as a brief description
+- [x] Step numbers use tabular numbers (`tnum`) for vertical alignment
+- [x] Step descriptions use Body typography (Inter 14px weight 400, `#3d4550`)
+- [x] "Execution: Not started" status is prominently displayed at the bottom in a distinct visual treatment
+- [x] Supports plan states: drafting, ready, approved, cancelled
+- [x] Steps can be added incrementally (animation for new steps appearing)
+- [x] Header uses Heading 2 style (Inter 20px weight 600)
 
 ## Design Reference
 - **Panel**: DESIGN.md § 4 (Cards & Containers > IntentBoard Panel) — same panel style
