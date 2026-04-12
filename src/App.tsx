@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import TokensPage from "@/pages/Tokens";
 import LayoutPage from "@/pages/Layout";
 import StatusCapsulePage from "@/pages/StatusCapsule";
+import VoiceBarPage from "@/pages/VoiceBar";
 import { Link } from "react-router-dom";
 
 function Home() {
@@ -49,6 +50,9 @@ function Home() {
         <Link to="/components/status-capsule" className="type-caption text-link hover:underline">
           View StatusCapsule
         </Link>
+        <Link to="/components/voice-bar" className="type-caption text-link hover:underline">
+          View VoiceBar
+        </Link>
       </motion.div>
     </div>
   );
@@ -61,6 +65,7 @@ function App() {
       <Route path="/tokens" element={<TokensPage />} />
       <Route path="/layout" element={<LayoutPage />} />
       <Route path="/components/status-capsule" element={<StatusCapsulePage />} />
+      <Route path="/components/voice-bar" element={<VoiceBarPage />} />
     </Routes>
   );
 }
