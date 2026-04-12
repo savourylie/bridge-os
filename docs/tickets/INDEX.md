@@ -7,10 +7,10 @@
 
 | Status        | Count |
 | ------------- | ----- |
-| ✅ Done        | 0     |
+| ✅ Done        | 1     |
 | 🔧 In Progress | 0     |
 | 📋 Pending     | 1     |
-| 🚫 Blocked     | 35    |
+| 🚫 Blocked     | 34    |
 | ⏸️ Deferred    | 0     |
 
 ---
@@ -21,8 +21,8 @@
 
 | #   | Ticket                                                                                     | Status    | Depends On | Notes |
 | --- | ------------------------------------------------------------------------------------------ | --------- | ---------- | ----- |
-| 001 | [Project Scaffolding](./001-project-scaffolding.md)                                        | `pending` | —          |       |
-| 002 | [Design Tokens & Theme](./002-design-tokens-and-theme.md)                                  | `blocked` | #001       |       |
+| 001 | [Project Scaffolding](./001-project-scaffolding.md)                                        | `done`    | —          | Foundation complete |
+| 002 | [Design Tokens & Theme](./002-design-tokens-and-theme.md)                                  | `pending` | #001 ✅    | Unblocked |
 | 003 | [Corridor Layout & Surfaces](./003-corridor-layout-and-surfaces.md)                        | `blocked` | #002       |       |
 | 004 | [**TEST: Checkpoint 0 — Foundation Scaffold**](./004-test-checkpoint-0-foundation.md)      | `blocked` | #003       | Gate: Phase 1 |
 

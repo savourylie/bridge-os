@@ -1,7 +1,7 @@
 # [TICKET-001] Project Scaffolding
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: None
@@ -12,13 +12,13 @@ Initialize the BridgeOS desktop application using Tauri 2 with a React + TypeScr
 The project uses Tauri 2 as the desktop shell with Rust as the core runtime, React + TypeScript for the presentation layer, Tailwind CSS for styling, shadcn/ui for base components, and Framer Motion for animations. Development happens on macOS with Linux as the deployment target.
 
 ## Acceptance Criteria
-- [ ] Tauri 2 project initializes and builds successfully on macOS
-- [ ] React + TypeScript frontend renders a basic "BridgeOS" placeholder in the Tauri window
-- [ ] Tailwind CSS is configured and a utility class renders correctly
-- [ ] shadcn/ui is installed and at least one component (e.g., Button) imports without error
-- [ ] Framer Motion is installed and a basic animation renders
-- [ ] The Tauri window opens at a reasonable default size (e.g., 800x600)
-- [ ] `npm run dev` (or equivalent) starts the dev server with hot reload
+- [x] Tauri 2 project initializes and builds successfully on macOS
+- [x] React + TypeScript frontend renders a basic "BridgeOS" placeholder in the Tauri window
+- [x] Tailwind CSS is configured and a utility class renders correctly
+- [x] shadcn/ui is installed and at least one component (e.g., Button) imports without error
+- [x] Framer Motion is installed and a basic animation renders
+- [x] The Tauri window opens at a reasonable default size (e.g., 800x600)
+- [x] `npm run dev` (or equivalent) starts the dev server with hot reload
 
 ## Implementation Notes
 - Initialize with `npm create tauri-app@latest` using the React + TypeScript template

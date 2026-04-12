@@ -1,10 +1,10 @@
 # [TICKET-002] Design Tokens & Theme System
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #001
+- Requires: #001 ✅
 
 ## Description
 Implement the BridgeOS design token system as CSS custom properties and Tailwind configuration, translating the full color palette, typography scale, spacing system, and border radius scale from DESIGN.md into reusable, consistent tokens. This ticket establishes the visual foundation that every UI component will reference.
