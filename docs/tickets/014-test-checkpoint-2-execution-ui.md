@@ -1,7 +1,7 @@
 # [TICKET-014] TEST: Checkpoint 2 — Execution UI
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #011 ✅, #012 ✅, #013 ✅
@@ -12,17 +12,17 @@ This checkpoint verifies that the execution and completion UI components are vis
 This is a gate for Phase 4 (State Management). State management will wire these components together with real data flow, so the visual composition must be correct first.
 
 ## Acceptance Criteria
-- [ ] Timeline renders step cards with correct status dots, connectors, and impact summaries
-- [ ] Timeline connector turns teal for completed step segments
-- [ ] ApprovalCard visually interrupts the timeline flow with deeper surface and amber accent
-- [ ] ApprovalCard Approve/Deny buttons have correct styles and focus rings
-- [ ] CompletionSummary uses warm surface, contrasting with preceding cool panels
-- [ ] CompletionSummary rollback indicator shows/hides correctly
-- [ ] Full composition test: TaskPanel containing IntentBoard → DraftPlan → Timeline → ApprovalCard → CompletionSummary renders without layout conflicts
-- [ ] Scrolling works within TaskPanel when content exceeds viewport
-- [ ] The visual register shift (cool operational → warm completion) is perceptible
-- [ ] No component uses hardcoded colors — all reference CSS custom properties
-- [ ] All buttons across components follow the three-tier system (Primary/Secondary/Ghost)
+- [x] Timeline renders step cards with correct status dots, connectors, and impact summaries
+- [x] Timeline connector turns teal for completed step segments
+- [x] ApprovalCard visually interrupts the timeline flow with deeper surface and amber accent
+- [x] ApprovalCard Approve/Deny buttons have correct styles and focus rings
+- [x] CompletionSummary uses warm surface, contrasting with preceding cool panels
+- [x] CompletionSummary rollback indicator shows/hides correctly
+- [x] Full composition test: TaskPanel containing IntentBoard → DraftPlan → Timeline → ApprovalCard → CompletionSummary renders without layout conflicts
+- [x] Scrolling works within TaskPanel when content exceeds viewport
+- [x] The visual register shift (cool operational → warm completion) is perceptible
+- [x] No component uses hardcoded colors — all reference CSS custom properties
+- [x] All buttons across components follow the three-tier system (Primary/Secondary/Ghost)
 
 ## Implementation Notes
 This is a manual test execution ticket — no code changes unless bugs are found during testing.

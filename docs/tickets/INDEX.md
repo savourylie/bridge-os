@@ -7,10 +7,10 @@
 
 | Status        | Count |
 | ------------- | ----- |
-| ✅ Done        | 13    |
+| ✅ Done        | 14    |
 | 🔧 In Progress | 0     |
 | 📋 Pending     | 1     |
-| 🚫 Blocked     | 22    |
+| 🚫 Blocked     | 21    |
 | ⏸️ Deferred    | 0     |
 
 ---
@@ -44,13 +44,13 @@
 | 011 | [Timeline & Step Cards](./011-timeline-and-step-cards.md)                                  | `done`    | #010 ✅          | Timeline & step cards complete |
 | 012 | [ApprovalCard](./012-approval-card.md)                                                     | `done`    | #010 ✅          | ApprovalCard complete |
 | 013 | [CompletionSummary](./013-completion-summary.md)                                           | `done`    | #010 ✅          | CompletionSummary complete |
-| 014 | [**TEST: Checkpoint 2 — Execution UI**](./014-test-checkpoint-2-execution-ui.md)           | `pending` | #011–#013 ✅     | Unblocked — Phase 3 components complete |
+| 014 | [**TEST: Checkpoint 2 — Execution UI**](./014-test-checkpoint-2-execution-ui.md)           | `done`    | #011–#013 ✅     | Gate: Phase 3 — All criteria passed |
 
 ## Phase 4 — State Management & Interactive Prototype
 
 | #   | Ticket                                                                                     | Status    | Depends On | Notes |
 | --- | ------------------------------------------------------------------------------------------ | --------- | ---------- | ----- |
-| 015 | [Core State Machines](./015-core-state-machines.md)                                        | `blocked` | #014       |       |
+| 015 | [Core State Machines](./015-core-state-machines.md)                                        | `pending` | #014 ✅    | Unblocked — #014 now done |
 | 016 | [State Store & Events](./016-state-store-and-events.md)                                    | `blocked` | #015       |       |
 | 017 | [Wire UI to State & Demo](./017-wire-ui-to-state.md)                                       | `blocked` | #016       |       |
 | 018 | [**TEST: Checkpoint 3 — Interactive Prototype**](./018-test-checkpoint-3-interactive-prototype.md) | `blocked` | #017 | Gate: Phase 4 |

@@ -1,10 +1,10 @@
 # [TICKET-015] Core State Machines
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #014
+- Requires: #014 ✅
 
 ## Description
 Implement the TypeScript state machine definitions for all BridgeOS state models: ConversationState, ExecutionState, TaskState, StepState, and ApprovalFlow. These state machines encode the valid transitions defined in UX_DESIGN.md, ensuring that the UI can only represent valid system states. This is the logic backbone that prevents invalid state combinations (e.g., executing while also not started).
