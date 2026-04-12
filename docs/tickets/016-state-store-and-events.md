@@ -1,10 +1,10 @@
 # [TICKET-016] State Store & Event System
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #015
+- Requires: #015 ✅
 
 ## Description
 Build the centralized state store and event system that powers BridgeOS's UI. The store manages all application state (conversation, execution, tasks, steps, approvals) and exposes it to React components via hooks. The event system follows the event-driven architecture recommended in TECH_STACK.md, where state changes are triggered by events (transcript_updated, intent_updated, plan_drafted, approval_requested, step_completed, etc.) rather than direct state mutations.

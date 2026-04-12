@@ -7,10 +7,10 @@
 
 | Status        | Count |
 | ------------- | ----- |
-| ✅ Done        | 14    |
+| ✅ Done        | 15    |
 | 🔧 In Progress | 0     |
 | 📋 Pending     | 1     |
-| 🚫 Blocked     | 21    |
+| 🚫 Blocked     | 20    |
 | ⏸️ Deferred    | 0     |
 
 ---
@@ -50,8 +50,8 @@
 
 | #   | Ticket                                                                                     | Status    | Depends On | Notes |
 | --- | ------------------------------------------------------------------------------------------ | --------- | ---------- | ----- |
-| 015 | [Core State Machines](./015-core-state-machines.md)                                        | `pending` | #014 ✅    | Unblocked — #014 now done |
-| 016 | [State Store & Events](./016-state-store-and-events.md)                                    | `blocked` | #015       |       |
+| 015 | [Core State Machines](./015-core-state-machines.md)                                        | `done`    | #014 ✅    | Core state machines complete |
+| 016 | [State Store & Events](./016-state-store-and-events.md)                                    | `pending` | #015 ✅    | Unblocked — #015 now done |
 | 017 | [Wire UI to State & Demo](./017-wire-ui-to-state.md)                                       | `blocked` | #016       |       |
 | 018 | [**TEST: Checkpoint 3 — Interactive Prototype**](./018-test-checkpoint-3-interactive-prototype.md) | `blocked` | #017 | Gate: Phase 4 |
 
