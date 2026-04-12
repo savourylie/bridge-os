@@ -3,7 +3,7 @@ name = "bridgeos"
 version = "0.1.0"
 description = "BridgeOS - Star Trek inspired AI interface"
 authors = ["you"]
-edition = "2021"
+edition.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -20,6 +20,11 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-
+serde.workspace = true
+serde_json.workspace = true
+adapters = { path = "../crates/adapters" }
+audit_log = { path = "../crates/audit_log" }
+conversation_runtime = { path = "../crates/conversation_runtime" }
+mock_adapters = { path = "../crates/mock_adapters" }
+orchestration_runtime = { path = "../crates/orchestration_runtime" }
+policy_engine = { path = "../crates/policy_engine" }

@@ -1,0 +1,13 @@
+[package]
+name = "orchestration_runtime"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+adapters = { path = "../adapters" }
+audit_log = { path = "../audit_log" }
+policy_engine = { path = "../policy_engine" }
+task_models = { path = "../task_models" }
+
+[dev-dependencies]
+async-trait.workspace = true

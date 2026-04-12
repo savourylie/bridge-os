@@ -1,0 +1,7 @@
+[package]
+name = "audit_log"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+task_models = { path = "../task_models" }

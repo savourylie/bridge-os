@@ -1,0 +1,9 @@
+[package]
+name = "mock_adapters"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+adapters = { path = "../adapters" }
+task_models = { path = "../task_models" }

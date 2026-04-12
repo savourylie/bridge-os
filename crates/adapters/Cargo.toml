@@ -1,0 +1,8 @@
+[package]
+name = "adapters"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+task_models = { path = "../task_models" }

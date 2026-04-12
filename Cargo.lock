@@ -3,6 +3,14 @@
 version = 4
 
 [[package]]
+name = "adapters"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "task_models",
+]
+
+[[package]]
 name = "adler2"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -208,6 +216,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
+name = "audit_log"
+version = "0.1.0"
+dependencies = [
+ "task_models",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -290,6 +305,12 @@ dependencies = [
 name = "bridgeos"
 version = "0.1.0"
 dependencies = [
+ "adapters",
+ "audit_log",
+ "conversation_runtime",
+ "mock_adapters",
+ "orchestration_runtime",
+ "policy_engine",
  "serde",
  "serde_json",
  "tauri",
@@ -484,6 +505,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ca0197aee26d1ae37445ee532fefce43251d24cc7c166799f4d46817f1d3973"
 dependencies = [
  "crossbeam-utils",
+]
+
+[[package]]
+name = "conversation_runtime"
+version = "0.1.0"
+dependencies = [
+ "adapters",
+ "async-trait",
+ "audit_log",
+ "task_models",
 ]
 
 [[package]]
@@ -2106,6 +2137,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "mock_adapters"
+version = "0.1.0"
+dependencies = [
+ "adapters",
+ "async-trait",
+ "task_models",
+]
+
+[[package]]
 name = "muda"
 version = "0.17.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2351,6 +2391,17 @@ name = "option-ext"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
+
+[[package]]
+name = "orchestration_runtime"
+version = "0.1.0"
+dependencies = [
+ "adapters",
+ "async-trait",
+ "audit_log",
+ "policy_engine",
+ "task_models",
+]
 
 [[package]]
 name = "ordered-stream"
@@ -2634,9 +2685,9 @@ dependencies = [
 
 [[package]]
 name = "pkg-config"
-version = "0.3.32"
+version = "0.3.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7edddbd0b52d732b21ad9a5fab5c704c14cd949e5e9a1ec5929a24fded1b904c"
+checksum = "19f132c84eca552bf34cab8ec81f1c1dcc229b811638f9d283dceabe58c5569e"
 
 [[package]]
 name = "plist"
@@ -2662,6 +2713,13 @@ dependencies = [
  "fdeflate",
  "flate2",
  "miniz_oxide",
+]
+
+[[package]]
+name = "policy_engine"
+version = "0.1.0"
+dependencies = [
+ "task_models",
 ]
 
 [[package]]
@@ -3616,6 +3674,14 @@ name = "target-lexicon"
 version = "0.12.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61c41af27dd6d1e27b1b16b489db798443478cef1f06a660c96db617ba5de3b1"
+
+[[package]]
+name = "task_models"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "tauri"

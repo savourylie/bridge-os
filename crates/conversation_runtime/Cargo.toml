@@ -1,0 +1,12 @@
+[package]
+name = "conversation_runtime"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+adapters = { path = "../adapters" }
+audit_log = { path = "../audit_log" }
+task_models = { path = "../task_models" }
+
+[dev-dependencies]
+async-trait.workspace = true
