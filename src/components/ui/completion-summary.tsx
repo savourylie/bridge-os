@@ -99,10 +99,10 @@ function CompletionSummary({
               onClick={onUndo}
               className={cn(
                 "type-button cursor-pointer rounded-md border border-brand bg-transparent text-brand transition-colors duration-150",
-                "hover:bg-brand hover:text-white",
-                "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                "hover:border-brand-hover hover:bg-brand/5 hover:text-brand-hover",
+                "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring",
               )}
-              style={{ padding: "10px 16px" }}
+              style={{ padding: "10px 20px" }}
             >
               Undo
             </button>
@@ -113,10 +113,10 @@ function CompletionSummary({
               onClick={onViewChanges}
               className={cn(
                 "type-button cursor-pointer rounded-md border border-brand bg-transparent text-brand transition-colors duration-150",
-                "hover:bg-brand hover:text-white",
-                "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                "hover:border-brand-hover hover:bg-brand/5 hover:text-brand-hover",
+                "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring",
               )}
-              style={{ padding: "10px 16px" }}
+              style={{ padding: "10px 20px" }}
             >
               View changes
             </button>
@@ -129,7 +129,7 @@ function CompletionSummary({
             className={cn(
               "type-button cursor-pointer rounded-md border-none bg-transparent text-subtle transition-colors duration-150",
               "hover:text-body-text",
-              "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+              "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring",
             )}
             style={{ padding: "10px 16px" }}
           >
