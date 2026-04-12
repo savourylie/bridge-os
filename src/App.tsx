@@ -8,6 +8,7 @@ import VoiceBarPage from "@/pages/VoiceBar";
 import IntentBoardPage from "@/pages/IntentBoard";
 import DraftPlanPage from "@/pages/DraftPlan";
 import TaskPanelPage from "@/pages/TaskPanel";
+import TimelinePage from "@/pages/Timeline";
 import { Link } from "react-router-dom";
 
 function Home() {
@@ -65,6 +66,9 @@ function Home() {
         <Link to="/components/task-panel" className="type-caption text-link hover:underline">
           View TaskPanel
         </Link>
+        <Link to="/components/timeline" className="type-caption text-link hover:underline">
+          View Timeline
+        </Link>
       </motion.div>
     </div>
   );
@@ -81,6 +85,7 @@ function App() {
       <Route path="/components/intent-board" element={<IntentBoardPage />} />
       <Route path="/components/draft-plan" element={<DraftPlanPage />} />
       <Route path="/components/task-panel" element={<TaskPanelPage />} />
+      <Route path="/components/timeline" element={<TimelinePage />} />
     </Routes>
   );
 }
