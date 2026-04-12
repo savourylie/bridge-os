@@ -7,10 +7,10 @@
 
 | Status        | Count |
 | ------------- | ----- |
-| ✅ Done        | 9     |
+| ✅ Done        | 10    |
 | 🔧 In Progress | 0     |
-| 📋 Pending     | 1     |
-| 🚫 Blocked     | 26    |
+| 📋 Pending     | 3     |
+| 🚫 Blocked     | 23    |
 | ⏸️ Deferred    | 0     |
 
 ---
@@ -35,15 +35,15 @@
 | 007 | [IntentBoard](./007-intent-board.md)                                                       | `done`    | #004 ✅          | IntentBoard complete |
 | 008 | [DraftPlan](./008-draft-plan.md)                                                           | `done`    | #004 ✅          | DraftPlan complete |
 | 009 | [TaskPanel Shell](./009-task-panel-shell.md)                                               | `done`    | #004 ✅          | TaskPanel Shell complete |
-| 010 | [**TEST: Checkpoint 1 — Core UI Components**](./010-test-checkpoint-1-core-ui.md)          | `pending` | #005–#009 ✅     | Gate: Phase 2 — Unblocked, all deps done |
+| 010 | [**TEST: Checkpoint 1 — Core UI Components**](./010-test-checkpoint-1-core-ui.md)          | `done`    | #005–#009 ✅     | Gate: Phase 2 — All criteria passed |
 
 ## Phase 3 — Execution & Completion UI
 
 | #   | Ticket                                                                                     | Status    | Depends On       | Notes |
 | --- | ------------------------------------------------------------------------------------------ | --------- | ---------------- | ----- |
-| 011 | [Timeline & Step Cards](./011-timeline-and-step-cards.md)                                  | `blocked` | #010             |       |
-| 012 | [ApprovalCard](./012-approval-card.md)                                                     | `blocked` | #010             |       |
-| 013 | [CompletionSummary](./013-completion-summary.md)                                           | `blocked` | #010             |       |
+| 011 | [Timeline & Step Cards](./011-timeline-and-step-cards.md)                                  | `pending` | #010 ✅          | Unblocked |
+| 012 | [ApprovalCard](./012-approval-card.md)                                                     | `pending` | #010 ✅          | Unblocked |
+| 013 | [CompletionSummary](./013-completion-summary.md)                                           | `pending` | #010 ✅          | Unblocked |
 | 014 | [**TEST: Checkpoint 2 — Execution UI**](./014-test-checkpoint-2-execution-ui.md)           | `blocked` | #011–#013        | Gate: Phase 3 |
 
 ## Phase 4 — State Management & Interactive Prototype

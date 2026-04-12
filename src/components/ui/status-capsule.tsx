@@ -26,15 +26,15 @@ interface StateConfig {
 }
 
 const STATE_CONFIG: Record<CapsuleState, StateConfig> = {
-  idle:             { dotColor: "#cc7a00", label: "BridgeOS",          surface: "cool", breathing: true  },
-  listening:        { dotColor: "#cc7a00", label: "Listening\u2026",   surface: "warm", breathing: false },
-  understanding:    { dotColor: "#cc7a00", label: "Understanding\u2026", surface: "warm", breathing: false },
-  planning:         { dotColor: "#2a9d8f", label: "Planning\u2026",    surface: "cool", breathing: false },
-  waiting_approval: { dotColor: "#cc7a00", label: "Needs approval",    surface: "cool", breathing: false },
-  executing:        { dotColor: "#2a9d8f", label: "Running\u2026",     surface: "cool", breathing: false },
-  paused:           { dotColor: "#7a8494", label: "Paused",            surface: "cool", breathing: false },
-  completed:        { dotColor: "#2a9d8f", label: "Complete",          surface: "warm", breathing: false },
-  failed:           { dotColor: "#c44536", label: "Failed",            surface: "cool", breathing: false },
+  idle:             { dotColor: "var(--color-brand)", label: "BridgeOS",          surface: "cool", breathing: true  },
+  listening:        { dotColor: "var(--color-brand)", label: "Listening\u2026",   surface: "warm", breathing: false },
+  understanding:    { dotColor: "var(--color-brand)", label: "Understanding\u2026", surface: "warm", breathing: false },
+  planning:         { dotColor: "var(--color-teal)",  label: "Planning\u2026",    surface: "cool", breathing: false },
+  waiting_approval: { dotColor: "var(--color-brand)", label: "Needs approval",    surface: "cool", breathing: false },
+  executing:        { dotColor: "var(--color-teal)",  label: "Running\u2026",     surface: "cool", breathing: false },
+  paused:           { dotColor: "var(--color-subtle)", label: "Paused",            surface: "cool", breathing: false },
+  completed:        { dotColor: "var(--color-teal)",  label: "Complete",          surface: "warm", breathing: false },
+  failed:           { dotColor: "var(--color-error)", label: "Failed",            surface: "cool", breathing: false },
 }
 
 /* ---------------------------------------------------------------------------
@@ -84,7 +84,7 @@ function StatusCapsule({
   return (
     <button
       className={cn(capsuleVariants({ surface: config.surface, className }))}
-      style={{ boxShadow: "0 2px 8px rgba(26, 29, 33, 0.08)" }}
+      style={{ boxShadow: "var(--shadow-capsule)" }}
       {...props}
     >
       {/* State indicator dot — 8px, breathing animation on idle */}

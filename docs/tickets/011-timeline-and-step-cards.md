@@ -1,10 +1,10 @@
 # [TICKET-011] Timeline & Step Cards
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #010
+- Requires: #010 ✅
 
 ## Description
 Build the Timeline — the main action trace view that replaces a traditional chat format with a structured, sequential display of execution steps. Each step card shows its title, description, status, impact summary, and available actions. Steps are connected by a vertical timeline connector that changes color as steps complete. This is the primary surface for execution visibility in BridgeOS.

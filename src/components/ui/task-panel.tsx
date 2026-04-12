@@ -43,27 +43,27 @@ interface TaskStatusConfig {
 const TASK_STATUS_CONFIG: Record<TaskStatus, TaskStatusConfig> = {
   not_started: {
     label: "Not started",
-    dotColor: "#7a8494",
+    dotColor: "var(--color-subtle)",
     className: "type-body-sm text-subtle",
   },
   pending: {
     label: "Pending",
-    dotColor: "#cc7a00",
+    dotColor: "var(--color-brand)",
     className: "type-body-sm text-brand",
   },
   in_progress: {
     label: "In progress",
-    dotColor: "#2a9d8f",
+    dotColor: "var(--color-teal)",
     className: "type-body-sm text-teal",
   },
   completed: {
     label: "Completed",
-    dotColor: "#2a9d8f",
+    dotColor: "var(--color-teal)",
     className: "type-body-sm text-teal",
   },
   failed: {
     label: "Failed",
-    dotColor: "#c44536",
+    dotColor: "var(--color-error)",
     className: "type-body-sm text-error",
   },
 }

@@ -1,10 +1,10 @@
 # [TICKET-013] CompletionSummary & Rollback Indicator
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #010
+- Requires: #010 ✅
 
 ## Description
 Build the CompletionSummary — a warm-surfaced panel that appears after task completion, summarizing the outcome in human-readable language. This component signals resolution by shifting back from the cool operational register to the warm conversational register. It includes a concise results summary, a list of changes made, and action buttons (Undo, View changes, Close). A simple rollback availability indicator shows whether and for how long the task can be undone.

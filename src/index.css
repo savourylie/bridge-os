@@ -107,6 +107,9 @@
   --accent-hover: #228577;
   --link-color: #cc7a00;
 
+  /* --- Elevation (DESIGN.md § 6) ----------------------------------------- */
+  --shadow-capsule: 0 2px 8px rgba(26, 29, 33, 0.08);
+
   /* --- Semantic ---------------------------------------------------------- */
   --color-success: #2a9d8f;
   --color-warning: #cc7a00;

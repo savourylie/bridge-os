@@ -1,10 +1,10 @@
 # [TICKET-012] ApprovalCard Component
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #010
+- Requires: #010 ✅
 
 ## Description
 Build the ApprovalCard — a clear, serious approval gate that interrupts the normal timeline flow for sensitive actions. This "monolith" component uses a deeper surface, thicker border, and amber accent to visually break the regular step card rhythm, signaling that user attention and explicit confirmation are required before proceeding. The ApprovalCard must explain what the system wants to do, why approval is needed, and what the impact will be.

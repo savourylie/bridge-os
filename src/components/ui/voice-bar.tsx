@@ -25,13 +25,13 @@ interface TurnStateConfig {
 }
 
 const TURN_STATE_CONFIG: Record<TurnState, TurnStateConfig> = {
-  idle:                    { barOpacity: 0.4, barAnimating: false, label: "Idle",                    indicatorColor: "#cc7a00" },
-  listening:               { barOpacity: 1.0, barAnimating: true,  label: "Listening\u2026",         indicatorColor: "#cc7a00" },
-  user_holding_turn:       { barOpacity: 1.0, barAnimating: true,  label: "User speaking\u2026",     indicatorColor: "#cc7a00" },
-  ai_speaking:             { barOpacity: 1.0, barAnimating: false, label: "AI speaking\u2026",       indicatorColor: "#cc7a00" },
-  awaiting_clarification:  { barOpacity: 0.6, barAnimating: true,  label: "Awaiting clarification",  indicatorColor: "#cc7a00" },
-  barge_in_detected:       { barOpacity: 1.0, barAnimating: false, label: "Barge-in detected",       indicatorColor: "#cc7a00" },
-  muted:                   { barOpacity: 0.4, barAnimating: false, label: "Muted",                   indicatorColor: "#7a8494" },
+  idle:                    { barOpacity: 0.4, barAnimating: false, label: "Idle",                    indicatorColor: "var(--color-brand)" },
+  listening:               { barOpacity: 1.0, barAnimating: true,  label: "Listening\u2026",         indicatorColor: "var(--color-brand)" },
+  user_holding_turn:       { barOpacity: 1.0, barAnimating: true,  label: "User speaking\u2026",     indicatorColor: "var(--color-brand)" },
+  ai_speaking:             { barOpacity: 1.0, barAnimating: false, label: "AI speaking\u2026",       indicatorColor: "var(--color-brand)" },
+  awaiting_clarification:  { barOpacity: 0.6, barAnimating: true,  label: "Awaiting clarification",  indicatorColor: "var(--color-brand)" },
+  barge_in_detected:       { barOpacity: 1.0, barAnimating: false, label: "Barge-in detected",       indicatorColor: "var(--color-brand)" },
+  muted:                   { barOpacity: 0.4, barAnimating: false, label: "Muted",                   indicatorColor: "var(--color-subtle)" },
 }
 
 /* ---------------------------------------------------------------------------
