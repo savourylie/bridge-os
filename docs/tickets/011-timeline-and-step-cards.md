@@ -1,7 +1,7 @@
 # [TICKET-011] Timeline & Step Cards
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #010 ✅
@@ -10,16 +10,16 @@
 Build the Timeline — the main action trace view that replaces a traditional chat format with a structured, sequential display of execution steps. Each step card shows its title, description, status, impact summary, and available actions. Steps are connected by a vertical timeline connector that changes color as steps complete. This is the primary surface for execution visibility in BridgeOS.
 
 ## Acceptance Criteria
-- [ ] Timeline renders within the intent/execution corridor (560px max-width)
-- [ ] Each step card uses cool surface `#edf1f4`, `1px solid #cdd3da` border, 8px radius, 16px 20px padding
-- [ ] Step cards have a 10px status dot on the left (radius 9999px) with colors: `#7a8494` pending, `#cc7a00` running/waiting_approval, `#2a9d8f` completed, `#c44536` failed
-- [ ] Vertical timeline connector (1px `#cdd3da`) links step card dots, turning `#2a9d8f` (teal) for completed segments
-- [ ] 12px vertical gap between step cards
-- [ ] Step description uses Body typography (Inter 14px weight 400, `#3d4550`)
-- [ ] Impact summary shows on the right in Body Small (Inter 13px weight 400, `#7a8494`)
-- [ ] All 8 step states are supported: pending, running, waiting_approval, completed, failed, skipped, blocked, reverted
-- [ ] Step status transitions animate smoothly (200ms ease on dot background-color)
-- [ ] Step cards are read-only during execution (no hover state per DESIGN.md Do's and Don'ts)
+- [x] Timeline renders within the intent/execution corridor (560px max-width)
+- [x] Each step card uses cool surface `#edf1f4`, `1px solid #cdd3da` border, 8px radius, 16px 20px padding
+- [x] Step cards have a 10px status dot on the left (radius 9999px) with colors: `#7a8494` pending, `#cc7a00` running/waiting_approval, `#2a9d8f` completed, `#c44536` failed
+- [x] Vertical timeline connector (1px `#cdd3da`) links step card dots, turning `#2a9d8f` (teal) for completed segments
+- [x] 12px vertical gap between step cards
+- [x] Step description uses Body typography (Inter 14px weight 400, `#3d4550`)
+- [x] Impact summary shows on the right in Body Small (Inter 13px weight 400, `#7a8494`)
+- [x] All 8 step states are supported: pending, running, waiting_approval, completed, failed, skipped, blocked, reverted
+- [x] Step status transitions animate smoothly (200ms ease on dot background-color)
+- [x] Step cards are read-only during execution (no hover state per DESIGN.md Do's and Don'ts)
 
 ## Design Reference
 - **Step cards**: DESIGN.md § 4 (Cards & Containers > Step Card)
