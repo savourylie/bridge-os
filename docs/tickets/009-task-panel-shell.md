@@ -1,7 +1,7 @@
 # [TICKET-009] TaskPanel Shell
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #004 ✅
@@ -10,16 +10,16 @@
 Build the TaskPanel — the main execution surface container that houses all task-related UI components. It renders as a right-side slide-over panel that remains visible alongside the desktop, allowing users to continue working while monitoring the system. This ticket builds the panel shell, including the TaskHeader and TaskMetaRow sub-components, with slot areas for child components (IntentBoard, DraftPlan, Timeline, etc.).
 
 ## Acceptance Criteria
-- [ ] TaskPanel renders as a right-side slide-over panel with smooth open/close animation
-- [ ] Panel slides in from the right edge using Framer Motion (300-500ms ease transition)
-- [ ] TaskHeader displays task title (Heading 1) and one-sentence summary (Body)
-- [ ] TaskMetaRow displays Status, Risk level, and Scope as a compact horizontal strip
-- [ ] Status values use the correct state colors (amber for pending, teal for completed, red for failed, muted for not started)
-- [ ] Risk level displays as Low/Medium/High with appropriate color coding
-- [ ] TaskMetaRow values are visible without scrolling
-- [ ] Panel body is scrollable when content exceeds viewport height
-- [ ] Open/close can be triggered programmatically and via the StatusCapsule click
-- [ ] Panel width accommodates the corridor widths (560px for intent/execution content)
+- [x] TaskPanel renders as a right-side slide-over panel with smooth open/close animation
+- [x] Panel slides in from the right edge using Framer Motion (300-500ms ease transition)
+- [x] TaskHeader displays task title (Heading 1) and one-sentence summary (Body)
+- [x] TaskMetaRow displays Status, Risk level, and Scope as a compact horizontal strip
+- [x] Status values use the correct state colors (amber for pending, teal for completed, red for failed, muted for not started)
+- [x] Risk level displays as Low/Medium/High with appropriate color coding
+- [x] TaskMetaRow values are visible without scrolling
+- [x] Panel body is scrollable when content exceeds viewport height
+- [x] Open/close can be triggered programmatically and via the StatusCapsule click
+- [x] Panel width accommodates the corridor widths (560px for intent/execution content)
 
 ## Design Reference
 - **Panel structure**: UX_DESIGN.md § 5 (TaskPanel) — contents list, side panel rationale

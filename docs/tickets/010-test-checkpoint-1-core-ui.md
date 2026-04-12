@@ -1,10 +1,10 @@
 # [TICKET-010] TEST: Checkpoint 1 — Core UI Components
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #005 ✅, #006 ✅, #007 ✅, #008 ✅, #009
+- Requires: #005 ✅, #006 ✅, #007 ✅, #008 ✅, #009 ✅
 
 ## Description
 This checkpoint verifies that all core UI components from Phase 2 render correctly in isolation and follow the design system established in Phase 1. Each component must match its DESIGN.md specifications for colors, typography, spacing, and behavior.
