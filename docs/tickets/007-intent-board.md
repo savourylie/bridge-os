@@ -1,7 +1,7 @@
 # [TICKET-007] IntentBoard Component
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #004 ✅
@@ -10,15 +10,15 @@
 Build the IntentBoard — one of BridgeOS's most important differentiators. This structured, pre-execution panel mirrors what the system currently believes the user wants, making intent legible before any action begins. It displays the goal, scope, constraints, exclusions, unresolved questions, and execution status in a clear, labeled format that updates incrementally during conversation.
 
 ## Acceptance Criteria
-- [ ] IntentBoard renders within the intent corridor (560px max-width) with cool surface `#edf1f4`
-- [ ] Panel has 24px padding, 8px border-radius, `1px solid #cdd3da` border
-- [ ] GOAL field renders with Label style (Inter 11px weight 600, uppercase, `#7a8494`, letter-spacing 0.06em) and value in Heading 1 style (Inter 24px weight 600, `#1a1d21`)
-- [ ] SCOPE, CONSTRAINTS, and EXCLUSIONS fields render with Label + Body typography (14px/400/`#3d4550`)
-- [ ] Unresolved questions section shows with amber `#cc7a00` left border (2px) when ambiguity exists
-- [ ] EXECUTION STATUS field prominently displays "Not started" in muted text when no execution has begun
-- [ ] 16px vertical spacing between label-value pairs
-- [ ] Supports incremental updates — fields can transition from empty to populated with a subtle animation
-- [ ] Fields can be individually hidden when not applicable
+- [x] IntentBoard renders within the intent corridor (560px max-width) with cool surface `#edf1f4`
+- [x] Panel has 24px padding, 8px border-radius, `1px solid #cdd3da` border
+- [x] GOAL field renders with Label style (Inter 11px weight 600, uppercase, `#7a8494`, letter-spacing 0.06em) and value in Heading 1 style (Inter 24px weight 600, `#1a1d21`)
+- [x] SCOPE, CONSTRAINTS, and EXCLUSIONS fields render with Label + Body typography (14px/400/`#3d4550`)
+- [x] Unresolved questions section shows with amber `#cc7a00` left border (2px) when ambiguity exists
+- [x] EXECUTION STATUS field prominently displays "Not started" in muted text when no execution has begun
+- [x] 16px vertical spacing between label-value pairs
+- [x] Supports incremental updates — fields can transition from empty to populated with a subtle animation
+- [x] Fields can be individually hidden when not applicable
 
 ## Design Reference
 - **Panel**: DESIGN.md § 4 (Cards & Containers > IntentBoard Panel)
