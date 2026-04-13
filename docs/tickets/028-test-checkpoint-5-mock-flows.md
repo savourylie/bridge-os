@@ -1,10 +1,10 @@
 # [TICKET-028] TEST: Checkpoint 5 — Mock Task Flows
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #026 ✅, #027
+- Requires: #026 ✅, #027 ✅
 
 ## Description
 This checkpoint verifies that the two implemented task flows (folder organization and project inspection/guarded commands) work end-to-end through the full BridgeOS stack: conversation runtime → orchestration → policy engine → mock adapters → UI. Each flow must demonstrate the core interaction loop with correct state management, event propagation, and visual feedback.

@@ -1,7 +1,7 @@
 # [TICKET-027] Project Inspection & Guarded Commands Flow
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #024 ✅, #025 ✅
@@ -10,16 +10,16 @@
 Implement two related MVP task categories: project inspection and guarded developer commands. Project inspection allows users to ask BridgeOS to scan a project directory, summarize its contents, and answer questions. Guarded commands allow a small allowlisted set of local commands to run with visible intent and results. Both categories share the pattern of read-only or low-risk operations with clear output display.
 
 ## Acceptance Criteria
-- [ ] Project inspection: user can ask to inspect a project folder (e.g., "What's in my memfuse project?")
-- [ ] IntentBoard shows goal (inspect/summarize), scope (target directory)
-- [ ] System scans the directory via `MockFileSystemAdapter` and generates a summary (file count, file types, directory structure)
-- [ ] Summary is presented in the CompletionSummary with structured output
-- [ ] Guarded commands: user can request to run an allowlisted command (e.g., "Run git status in my project")
-- [ ] Policy engine validates the command is on the allowlist — allowlisted commands proceed as low-risk
-- [ ] Commands not on the allowlist are flagged as high-risk and require explicit approval
-- [ ] Command intent and the exact command to be executed are shown in the DraftPlan
-- [ ] Command output (stdout/stderr from mock) is displayed in the Timeline step card
-- [ ] Default allowlist includes: `ls`, `cat`, `git status`, `git log`, `git diff`, `npm run`, `cargo build`, `cargo test`
+- [x] Project inspection: user can ask to inspect a project folder (e.g., "What's in my memfuse project?")
+- [x] IntentBoard shows goal (inspect/summarize), scope (target directory)
+- [x] System scans the directory via `MockFileSystemAdapter` and generates a summary (file count, file types, directory structure)
+- [x] Summary is presented in the CompletionSummary with structured output
+- [x] Guarded commands: user can request to run an allowlisted command (e.g., "Run git status in my project")
+- [x] Policy engine validates the command is on the allowlist — allowlisted commands proceed as low-risk
+- [x] Commands not on the allowlist are flagged as high-risk and require explicit approval
+- [x] Command intent and the exact command to be executed are shown in the DraftPlan
+- [x] Command output (stdout/stderr from mock) is displayed in the Timeline step card
+- [x] Default allowlist includes: `ls`, `cat`, `git status`, `git log`, `git diff`, `npm run`, `cargo build`, `cargo test`
 
 ## Implementation Notes
 - Project inspection is essentially a specialized read-only scan — use `MockFileSystemAdapter::list_directory()` recursively
