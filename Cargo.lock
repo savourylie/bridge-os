@@ -2419,6 +2419,7 @@ dependencies = [
  "adapters",
  "async-trait",
  "audit_log",
+ "futures",
  "policy_engine",
  "task_models",
 ]

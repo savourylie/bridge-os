@@ -70,7 +70,8 @@ impl TranscriptBuffer {
         Some(self.display_text())
     }
 
-    fn clear_live(&mut self) {
+    fn clear(&mut self) {
+        self.committed.clear();
         self.live.clear();
     }
 }
@@ -265,7 +266,7 @@ impl ConversationRuntime {
         self.transcript
             .write()
             .expect("conversation transcript lock poisoned")
-            .clear_live();
+            .clear();
         self.reset()
     }
 }
@@ -454,5 +455,23 @@ mod tests {
             Some(ConversationState::IntentLocked)
         );
         assert_eq!(runtime.transcript(), "the screenshots from this week");
+    }
+
+    #[test]
+    fn stop_listening_clears_the_full_transcript_buffer() {
+        let (runtime, _) = runtime_with_signals(Vec::new());
+
+        block_on(runtime.start_listening()).expect("start listening");
+        runtime
+            .submit_transcript_chunk(TranscriptChunk {
+                text: "Computer, organize Downloads".into(),
+                is_final: true,
+            })
+            .expect("submit transcript");
+
+        block_on(runtime.stop_listening()).expect("stop listening");
+
+        assert_eq!(runtime.transcript(), "");
+        assert_eq!(runtime.state(), ConversationState::Idle);
     }
 }

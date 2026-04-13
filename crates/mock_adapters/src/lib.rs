@@ -2,12 +2,12 @@ use std::collections::{HashMap, VecDeque};
 use std::sync::Mutex;
 
 use adapters::{
-    ActiveWindowInfo, AdapterError, AdapterResult, CreateDirectoryRequest, DeleteFileRequest,
-    DesktopAdapter, FileEntry, FileSystemAdapter, LaunchAppRequest, LaunchAppResult,
-    ListDirectoryRequest, MoveFileRequest, PackageInfo, PackageInstallRequest,
-    PackageManagerAdapter, PackageOperationResult, PackageQuery, PrivilegeAdapter,
-    PrivilegeOutcome, PrivilegeRequest, RenameFileRequest, TranscriptChunk, VoiceAdapter,
-    VoiceSignal,
+    ActiveWindowInfo, AdapterError, AdapterResult, CommandAdapter, CommandOutput, CommandRequest,
+    CreateDirectoryRequest, DeleteFileRequest, DesktopAdapter, FileEntry, FileSystemAdapter,
+    LaunchAppRequest, LaunchAppResult, ListDirectoryRequest, MoveFileRequest, PackageInfo,
+    PackageInstallRequest, PackageManagerAdapter, PackageOperationResult, PackageQuery,
+    PrivilegeAdapter, PrivilegeOutcome, PrivilegeRequest, RenameFileRequest, TranscriptChunk,
+    VoiceAdapter, VoiceSignal,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -368,6 +368,76 @@ impl DesktopAdapter for MockDesktopAdapter {
     }
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct MockCommandConfig {
+    pub outputs: HashMap<String, CommandOutput>,
+    pub default_working_directory: Option<String>,
+}
+
+#[derive(Debug, Default)]
+pub struct MockCommandAdapter {
+    outputs: Mutex<HashMap<String, CommandOutput>>,
+    requests: Mutex<Vec<CommandRequest>>,
+    default_working_directory: Option<String>,
+}
+
+impl MockCommandAdapter {
+    pub fn new(config: MockCommandConfig) -> Self {
+        Self {
+            outputs: Mutex::new(config.outputs),
+            requests: Mutex::new(Vec::new()),
+            default_working_directory: config.default_working_directory,
+        }
+    }
+
+    pub fn requests(&self) -> Vec<CommandRequest> {
+        self.requests
+            .lock()
+            .expect("mock command adapter requests lock poisoned")
+            .clone()
+    }
+}
+
+#[async_trait::async_trait]
+impl CommandAdapter for MockCommandAdapter {
+    async fn run_command(&self, request: CommandRequest) -> AdapterResult<CommandOutput> {
+        let normalized_request = CommandRequest {
+            working_directory: request
+                .working_directory
+                .clone()
+                .or_else(|| self.default_working_directory.clone()),
+            ..request
+        };
+
+        self.requests
+            .lock()
+            .expect("mock command adapter requests lock poisoned")
+            .push(normalized_request.clone());
+
+        if let Some(output) = self
+            .outputs
+            .lock()
+            .expect("mock command adapter outputs lock poisoned")
+            .get(&normalized_request.command)
+            .cloned()
+        {
+            return Ok(CommandOutput {
+                working_directory: normalized_request.working_directory,
+                ..output
+            });
+        }
+
+        Ok(CommandOutput {
+            command: normalized_request.command,
+            working_directory: normalized_request.working_directory,
+            success: true,
+            stdout: Some("mock command completed".into()),
+            stderr: None,
+            exit_code: Some(0),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -377,6 +447,7 @@ mod tests {
     fn assert_privilege_adapter(_: &dyn PrivilegeAdapter) {}
     fn assert_package_manager_adapter(_: &dyn PackageManagerAdapter) {}
     fn assert_desktop_adapter(_: &dyn DesktopAdapter) {}
+    fn assert_command_adapter(_: &dyn CommandAdapter) {}
 
     #[test]
     fn mock_adapters_construct_and_satisfy_trait_surfaces() {
@@ -396,13 +467,19 @@ mod tests {
             active_window: ActiveWindowInfo::default(),
             launch_succeeds: true,
         });
+        let command = MockCommandAdapter::new(MockCommandConfig {
+            outputs: HashMap::new(),
+            default_working_directory: Some("~/Projects".into()),
+        });
 
         assert_file_system_adapter(&file_system);
         assert_voice_adapter(&voice);
         assert_privilege_adapter(&privilege);
         assert_package_manager_adapter(&package_manager);
         assert_desktop_adapter(&desktop);
+        assert_command_adapter(&command);
         assert!(!voice.is_listening());
         assert!(file_system.operations().is_empty());
+        assert!(command.requests().is_empty());
     }
 }

@@ -121,6 +121,22 @@ pub struct LaunchAppResult {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct CommandRequest {
+    pub command: String,
+    pub working_directory: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct CommandOutput {
+    pub command: String,
+    pub working_directory: Option<String>,
+    pub success: bool,
+    pub stdout: Option<String>,
+    pub stderr: Option<String>,
+    pub exit_code: Option<i32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ActiveWindowInfo {
     pub app_id: Option<String>,
     pub title: Option<String>,
@@ -161,6 +177,11 @@ pub trait PackageManagerAdapter: Send + Sync {
 pub trait DesktopAdapter: Send + Sync {
     async fn launch_app(&self, request: LaunchAppRequest) -> AdapterResult<LaunchAppResult>;
     async fn active_window(&self) -> AdapterResult<ActiveWindowInfo>;
+}
+
+#[async_trait]
+pub trait CommandAdapter: Send + Sync {
+    async fn run_command(&self, request: CommandRequest) -> AdapterResult<CommandOutput>;
 }
 
 #[cfg(test)]
@@ -252,11 +273,26 @@ mod tests {
         }
     }
 
+    #[async_trait]
+    impl CommandAdapter for DummyAdapter {
+        async fn run_command(&self, request: CommandRequest) -> AdapterResult<CommandOutput> {
+            Ok(CommandOutput {
+                command: request.command,
+                working_directory: request.working_directory,
+                success: true,
+                stdout: Some("mock output".into()),
+                stderr: None,
+                exit_code: Some(0),
+            })
+        }
+    }
+
     fn assert_file_system_adapter(_: &dyn FileSystemAdapter) {}
     fn assert_voice_adapter(_: &dyn VoiceAdapter) {}
     fn assert_privilege_adapter(_: &dyn PrivilegeAdapter) {}
     fn assert_package_manager_adapter(_: &dyn PackageManagerAdapter) {}
     fn assert_desktop_adapter(_: &dyn DesktopAdapter) {}
+    fn assert_command_adapter(_: &dyn CommandAdapter) {}
 
     #[test]
     fn traits_are_object_safe_and_share_a_single_error_shape() {
@@ -267,6 +303,7 @@ mod tests {
         assert_privilege_adapter(&adapter);
         assert_package_manager_adapter(&adapter);
         assert_desktop_adapter(&adapter);
+        assert_command_adapter(&adapter);
         assert_eq!(AdapterError::new("boom").to_string(), "boom");
     }
 }

@@ -7,11 +7,14 @@ use adapters::{ActiveWindowInfo, FileEntry};
 use audit_log::{AuditSink, InMemoryAuditLog};
 use conversation_runtime::ConversationRuntime;
 use mock_adapters::{
-    MockDesktopAdapter, MockDesktopConfig, MockFileSystemAdapter, MockFileSystemConfig,
-    MockPackageManagerAdapter, MockPackageManagerConfig, MockPrivilegeAdapter, MockPrivilegeConfig,
-    MockVoiceAdapter, MockVoiceConfig,
+    MockCommandAdapter, MockCommandConfig, MockDesktopAdapter, MockDesktopConfig,
+    MockFileSystemAdapter, MockFileSystemConfig, MockPackageManagerAdapter,
+    MockPackageManagerConfig, MockPrivilegeAdapter, MockPrivilegeConfig, MockVoiceAdapter,
+    MockVoiceConfig,
 };
-use orchestration_runtime::{OrchestrationRuntime, RuntimeAdapters, RuntimeDependencies};
+use orchestration_runtime::{
+    OrchestrationConfig, OrchestrationRuntime, RuntimeAdapters, RuntimeDependencies,
+};
 use policy_engine::{PolicyConfig, PolicyEngine};
 
 #[derive(Clone)]
@@ -21,6 +24,7 @@ pub struct MockAdapterBundle {
     pub privilege: Arc<MockPrivilegeAdapter>,
     pub package_manager: Arc<MockPackageManagerAdapter>,
     pub desktop: Arc<MockDesktopAdapter>,
+    pub command: Arc<MockCommandAdapter>,
 }
 
 impl MockAdapterBundle {
@@ -60,6 +64,35 @@ impl MockAdapterBundle {
                 },
                 launch_succeeds: true,
             })),
+            command: Arc::new(MockCommandAdapter::new(MockCommandConfig {
+                outputs: HashMap::from([
+                    (
+                        "git status".into(),
+                        adapters::CommandOutput {
+                            command: "git status".into(),
+                            working_directory: Some("~/Projects".into()),
+                            success: true,
+                            stdout: Some(
+                                "On branch main\nnothing to commit, working tree clean".into(),
+                            ),
+                            stderr: None,
+                            exit_code: Some(0),
+                        },
+                    ),
+                    (
+                        "cargo test".into(),
+                        adapters::CommandOutput {
+                            command: "cargo test".into(),
+                            working_directory: Some("~/Projects".into()),
+                            success: true,
+                            stdout: Some("test result: ok. 12 passed; 0 failed".into()),
+                            stderr: None,
+                            exit_code: Some(0),
+                        },
+                    ),
+                ]),
+                default_working_directory: Some("~/Projects".into()),
+            })),
         }
     }
 
@@ -70,10 +103,12 @@ impl MockAdapterBundle {
             privilege: self.privilege.clone(),
             package_manager: self.package_manager.clone(),
             desktop: self.desktop.clone(),
+            command: self.command.clone(),
         }
     }
 }
 
+#[derive(Clone)]
 pub struct BackendState {
     pub adapters: MockAdapterBundle,
     pub audit_log: Arc<InMemoryAuditLog>,
@@ -92,11 +127,42 @@ impl BackendState {
             adapters.voice.clone(),
             audit_sink.clone(),
         ));
-        let orchestration_runtime = Arc::new(OrchestrationRuntime::new(RuntimeDependencies {
-            adapters: adapters.as_runtime_adapters(),
-            policy_engine: policy_engine.clone(),
-            audit_log: audit_sink,
-        }));
+        let orchestration_runtime = Arc::new(OrchestrationRuntime::with_config(
+            RuntimeDependencies {
+                adapters: adapters.as_runtime_adapters(),
+                policy_engine: policy_engine.clone(),
+                audit_log: audit_sink,
+            },
+            OrchestrationConfig::default(),
+        ));
+
+        Self {
+            adapters,
+            audit_log,
+            policy_engine,
+            conversation_runtime,
+            orchestration_runtime,
+        }
+    }
+
+    #[cfg(test)]
+    fn bootstrap_with_config(config: OrchestrationConfig) -> Self {
+        let adapters = MockAdapterBundle::bootstrap();
+        let audit_log = Arc::new(InMemoryAuditLog::new());
+        let audit_sink: Arc<dyn AuditSink> = audit_log.clone();
+        let policy_engine = Arc::new(PolicyEngine::new(PolicyConfig::default()));
+        let conversation_runtime = Arc::new(ConversationRuntime::new(
+            adapters.voice.clone(),
+            audit_sink.clone(),
+        ));
+        let orchestration_runtime = Arc::new(OrchestrationRuntime::with_config(
+            RuntimeDependencies {
+                adapters: adapters.as_runtime_adapters(),
+                policy_engine: policy_engine.clone(),
+                audit_log: audit_sink,
+            },
+            config,
+        ));
 
         Self {
             adapters,
