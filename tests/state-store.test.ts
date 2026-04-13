@@ -84,7 +84,9 @@ describe("bridge store", () => {
     })
     expect(state.currentTask).toEqual({
       state: "idle",
-      intent: {},
+      intent: {
+        unresolvedQuestions: [],
+      },
       plan: {
         steps: [],
         planState: "drafting",
@@ -202,6 +204,7 @@ describe("bridge store", () => {
       goal: "Organize screenshots in ~/Downloads by month",
       scope: "~/Downloads only",
       constraints: "Preserve original filenames",
+      unresolvedQuestions: [],
     })
     expect(store.getState().currentTask.plan).toEqual({
       title: "Draft plan",
@@ -475,7 +478,9 @@ describe("bridge store", () => {
     })
     expect(state.currentTask).toEqual({
       state: "idle",
-      intent: {},
+      intent: {
+        unresolvedQuestions: [],
+      },
       plan: {
         steps: [],
         planState: "drafting",

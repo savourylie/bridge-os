@@ -1,0 +1,623 @@
+use tauri::{AppHandle, State};
+use task_models::{
+    ApprovalFlow, ApprovalRequest, ApprovalSnapshot, CompletionChanges, CompletionSummary,
+    ConversationSlice, ExecutionProgress, ExecutionState, ExecutionSlice, Intent, Plan, PlanState,
+    PlanStep, RiskLevel, StepState, SystemState, TaskState, TimelineStep,
+};
+
+use crate::BackendState;
+
+pub const CONVERSATION_STATE_CHANGED: &str = "conversation_state_changed";
+pub const TRANSCRIPT_UPDATED: &str = "transcript_updated";
+pub const INTENT_UPDATED: &str = "intent_updated";
+pub const PLAN_UPDATED: &str = "plan_updated";
+pub const EXECUTION_STATE_CHANGED: &str = "execution_state_changed";
+pub const STEP_UPDATED: &str = "step_updated";
+pub const APPROVAL_REQUESTED: &str = "approval_requested";
+pub const TASK_COMPLETED: &str = "task_completed";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum IpcCommand {
+    StartListening,
+    StopListening,
+    ApproveAction,
+    DenyAction,
+    PauseExecution,
+    ResumeExecution,
+    StopExecution,
+}
+
+trait BridgeEventEmitter {
+    fn emit_system_state(&self, event_name: &str, state: &SystemState) -> Result<(), String>;
+}
+
+impl BridgeEventEmitter for AppHandle {
+    fn emit_system_state(&self, event_name: &str, state: &SystemState) -> Result<(), String> {
+        use tauri::Emitter;
+
+        self.emit(event_name, state.clone())
+            .map_err(|error| error.to_string())
+    }
+}
+
+fn placeholder_approval_request() -> ApprovalRequest {
+    ApprovalRequest {
+        action: "Move screenshots into month folders inside ~/Downloads".into(),
+        will_affect: vec![
+            "create dated folders inside ~/Downloads".into(),
+            "move screenshots without changing filenames".into(),
+        ],
+        will_not_affect: vec![
+            "delete files".into(),
+            "write outside ~/Downloads".into(),
+        ],
+        impact_summary: Some("Writes remain inside ~/Downloads only.".into()),
+        command: Some(
+            "bridgeos file-organize --target ~/Downloads --group-by month --exclude pdf,zip"
+                .into(),
+        ),
+    }
+}
+
+fn placeholder_plan_steps() -> Vec<PlanStep> {
+    vec![
+        PlanStep {
+            id: "step-1".into(),
+            description: "Scan ~/Downloads for screenshots".into(),
+        },
+        PlanStep {
+            id: "step-2".into(),
+            description: "Prepare dated folders and move matching files".into(),
+        },
+        PlanStep {
+            id: "step-3".into(),
+            description: "Verify the result and summarize the outcome".into(),
+        },
+    ]
+}
+
+fn placeholder_timeline() -> Vec<TimelineStep> {
+    vec![
+        TimelineStep {
+            id: "step-1".into(),
+            description: "Scan ~/Downloads for screenshots".into(),
+            impact: Some("Read-only scan of the approved folder.".into()),
+            status: StepState::Pending,
+        },
+        TimelineStep {
+            id: "step-2".into(),
+            description: "Prepare dated folders and move matching files".into(),
+            impact: Some("Writes stay inside ~/Downloads.".into()),
+            status: StepState::Pending,
+        },
+        TimelineStep {
+            id: "step-3".into(),
+            description: "Verify the result and summarize the outcome".into(),
+            impact: Some("Produces a completion summary for the user.".into()),
+            status: StepState::Pending,
+        },
+    ]
+}
+
+fn derive_execution_progress(timeline: &[TimelineStep]) -> Option<ExecutionProgress> {
+    if timeline.is_empty() {
+        return None;
+    }
+
+    if let Some(active_index) = timeline
+        .iter()
+        .position(|step| matches!(step.status, StepState::Running | StepState::WaitingApproval))
+    {
+        return Some(ExecutionProgress {
+            current: (active_index + 1) as u64,
+            total: timeline.len() as u64,
+        });
+    }
+
+    let touched = timeline
+        .iter()
+        .filter(|step| !matches!(step.status, StepState::Pending))
+        .count();
+
+    Some(ExecutionProgress {
+        current: touched.min(timeline.len()) as u64,
+        total: timeline.len() as u64,
+    })
+}
+
+fn seed_placeholder_task(state: &mut SystemState) {
+    if state.current_task.id.is_none() {
+        state.current_task.id = Some("task-020-placeholder".into());
+    }
+
+    if state.current_task.title.is_none() {
+        state.current_task.title = Some("Organize Downloads".into());
+    }
+
+    if state.current_task.summary.is_none() {
+        state.current_task.summary =
+            Some("Stub runtime task used to validate the Tauri IPC bridge.".into());
+    }
+
+    if state.current_task.risk.is_none() {
+        state.current_task.risk = Some(RiskLevel::Medium);
+    }
+
+    if state.current_task.scope.is_none() {
+        state.current_task.scope = Some("~/Downloads only".into());
+    }
+
+    if state.current_task.intent.goal.is_none() {
+        state.current_task.intent = Intent {
+            goal: Some("Organize screenshots in ~/Downloads by month".into()),
+            scope: Some("~/Downloads only".into()),
+            constraints: Some("Preserve original filenames.".into()),
+            exclusions: Some("Ignore PDFs, zip files, hidden files, and installers.".into()),
+            unresolved_questions: Vec::new(),
+        };
+    }
+
+    if state.current_task.plan.steps.is_empty() {
+        state.current_task.plan = Plan {
+            title: Some("Draft plan".into()),
+            steps: placeholder_plan_steps(),
+            plan_state: PlanState::Ready,
+        };
+    }
+
+    if state.timeline.is_empty() {
+        state.timeline = placeholder_timeline();
+    }
+
+    if state.approval.request.is_none() {
+        state.approval.request = Some(placeholder_approval_request());
+    }
+}
+
+fn set_step_status(
+    timeline: &mut [TimelineStep],
+    index: usize,
+    status: StepState,
+    impact: Option<&str>,
+) {
+    if let Some(step) = timeline.get_mut(index) {
+        step.status = status;
+        if let Some(impact) = impact {
+            step.impact = Some(impact.into());
+        }
+    }
+}
+
+fn event_names_for_command(command: IpcCommand) -> &'static [&'static str] {
+    match command {
+        IpcCommand::StartListening => &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED],
+        IpcCommand::StopListening => &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED],
+        IpcCommand::ApproveAction => &[
+            INTENT_UPDATED,
+            PLAN_UPDATED,
+            APPROVAL_REQUESTED,
+            EXECUTION_STATE_CHANGED,
+            STEP_UPDATED,
+        ],
+        IpcCommand::DenyAction => &[
+            INTENT_UPDATED,
+            PLAN_UPDATED,
+            APPROVAL_REQUESTED,
+            EXECUTION_STATE_CHANGED,
+            STEP_UPDATED,
+        ],
+        IpcCommand::PauseExecution => &[EXECUTION_STATE_CHANGED, STEP_UPDATED],
+        IpcCommand::ResumeExecution => &[EXECUTION_STATE_CHANGED, STEP_UPDATED],
+        IpcCommand::StopExecution => &[EXECUTION_STATE_CHANGED, STEP_UPDATED, TASK_COMPLETED],
+    }
+}
+
+fn apply_ipc_command(command: IpcCommand, state: &mut SystemState) {
+    match command {
+        IpcCommand::StartListening => {
+            if matches!(state.current_task.state, TaskState::Idle | TaskState::Cancelled) {
+                state.current_task.state = TaskState::Listening;
+            }
+        }
+        IpcCommand::StopListening => {
+            if state.current_task.state == TaskState::Listening {
+                state.current_task.state = TaskState::Idle;
+            }
+        }
+        IpcCommand::ApproveAction => {
+            seed_placeholder_task(state);
+            state.current_task.state = TaskState::Executing;
+            state.current_task.plan.plan_state = PlanState::Approved;
+            state.execution = ExecutionSlice {
+                state: ExecutionState::Executing,
+                progress: None,
+            };
+            state.approval = ApprovalSnapshot {
+                state: ApprovalFlow::Done,
+                request: Some(placeholder_approval_request()),
+            };
+
+            set_step_status(
+                &mut state.timeline,
+                0,
+                StepState::Completed,
+                Some("133 screenshots identified."),
+            );
+            set_step_status(
+                &mut state.timeline,
+                1,
+                StepState::Running,
+                Some("Preparing dated folders inside ~/Downloads."),
+            );
+            set_step_status(&mut state.timeline, 2, StepState::Pending, None);
+        }
+        IpcCommand::DenyAction => {
+            seed_placeholder_task(state);
+            state.current_task.state = TaskState::Cancelled;
+            state.execution = ExecutionSlice {
+                state: ExecutionState::NotStarted,
+                progress: None,
+            };
+            state.approval = ApprovalSnapshot {
+                state: ApprovalFlow::Denied,
+                request: Some(placeholder_approval_request()),
+            };
+
+            set_step_status(
+                &mut state.timeline,
+                0,
+                StepState::Completed,
+                Some("133 screenshots identified."),
+            );
+            set_step_status(
+                &mut state.timeline,
+                1,
+                StepState::Skipped,
+                Some("Execution was denied before any file moves ran."),
+            );
+            set_step_status(&mut state.timeline, 2, StepState::Skipped, None);
+        }
+        IpcCommand::PauseExecution => {
+            seed_placeholder_task(state);
+            state.current_task.state = TaskState::Paused;
+            state.current_task.plan.plan_state = PlanState::Approved;
+            state.execution = ExecutionSlice {
+                state: ExecutionState::Paused,
+                progress: None,
+            };
+            state.approval.state = ApprovalFlow::Done;
+
+            set_step_status(
+                &mut state.timeline,
+                0,
+                StepState::Completed,
+                Some("133 screenshots identified."),
+            );
+            set_step_status(
+                &mut state.timeline,
+                1,
+                StepState::Running,
+                Some("Execution is paused at the next safe point."),
+            );
+        }
+        IpcCommand::ResumeExecution => {
+            seed_placeholder_task(state);
+            state.current_task.state = TaskState::Executing;
+            state.current_task.plan.plan_state = PlanState::Approved;
+            state.execution = ExecutionSlice {
+                state: ExecutionState::Executing,
+                progress: None,
+            };
+            state.approval.state = ApprovalFlow::Done;
+
+            set_step_status(
+                &mut state.timeline,
+                0,
+                StepState::Completed,
+                Some("133 screenshots identified."),
+            );
+            set_step_status(
+                &mut state.timeline,
+                1,
+                StepState::Running,
+                Some("Resumed execution inside ~/Downloads."),
+            );
+        }
+        IpcCommand::StopExecution => {
+            seed_placeholder_task(state);
+            state.current_task.state = TaskState::Cancelled;
+            state.current_task.plan.plan_state = PlanState::Approved;
+            state.current_task.completion = Some(CompletionSummary {
+                title: Some("Execution stopped".into()),
+                outcome: "Execution stopped by user request.".into(),
+                changes: CompletionChanges {
+                    created: 0,
+                    modified: 0,
+                    moved: 0,
+                    deleted: 0,
+                    network: Some(false),
+                },
+                rollback_available: Some(false),
+                rollback_time_remaining: None,
+            });
+            state.execution = ExecutionSlice {
+                state: ExecutionState::Failed,
+                progress: None,
+            };
+            state.approval.state = ApprovalFlow::Done;
+
+            set_step_status(
+                &mut state.timeline,
+                0,
+                StepState::Completed,
+                Some("133 screenshots identified."),
+            );
+            set_step_status(
+                &mut state.timeline,
+                1,
+                StepState::Blocked,
+                Some("Execution stopped before any file moves completed."),
+            );
+            set_step_status(
+                &mut state.timeline,
+                2,
+                StepState::Skipped,
+                Some("No completion verification ran after stop."),
+            );
+        }
+    }
+
+    state.execution.progress = derive_execution_progress(&state.timeline);
+}
+
+fn sync_conversation_slice(backend_state: &BackendState, state: &mut SystemState) {
+    state.conversation = ConversationSlice {
+        state: backend_state.conversation_runtime.state(),
+        transcript: backend_state.conversation_runtime.transcript(),
+    };
+}
+
+fn build_system_state(backend_state: &BackendState) -> SystemState {
+    let mut state = backend_state.orchestration_runtime.system_state();
+    sync_conversation_slice(backend_state, &mut state);
+
+    if state.execution.progress.is_none() {
+        state.execution.progress = derive_execution_progress(&state.timeline);
+    }
+
+    state
+}
+
+fn persist_system_state(backend_state: &BackendState, state: SystemState) -> SystemState {
+    backend_state
+        .orchestration_runtime
+        .replace_system_state(state.clone());
+    state
+}
+
+fn apply_and_persist(command: IpcCommand, backend_state: &BackendState) -> SystemState {
+    let mut state = build_system_state(backend_state);
+    apply_ipc_command(command, &mut state);
+    persist_system_state(backend_state, state)
+}
+
+fn emit_events<E: BridgeEventEmitter>(
+    emitter: &E,
+    command: IpcCommand,
+    state: &SystemState,
+) -> Result<(), String> {
+    for event_name in event_names_for_command(command) {
+        emitter.emit_system_state(event_name, state)?;
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn start_listening(
+    app: AppHandle,
+    state: State<'_, BackendState>,
+) -> Result<SystemState, String> {
+    let backend_state = state.inner();
+    backend_state
+        .conversation_runtime
+        .start_listening()
+        .await
+        .map_err(|error| error.to_string())?;
+    backend_state
+        .conversation_runtime
+        .replace_transcript("Listening for your request.");
+
+    let next_state = apply_and_persist(IpcCommand::StartListening, backend_state);
+    emit_events(&app, IpcCommand::StartListening, &next_state)?;
+
+    Ok(next_state)
+}
+
+#[tauri::command]
+pub async fn stop_listening(
+    app: AppHandle,
+    state: State<'_, BackendState>,
+) -> Result<SystemState, String> {
+    let backend_state = state.inner();
+    backend_state
+        .conversation_runtime
+        .stop_listening()
+        .await
+        .map_err(|error| error.to_string())?;
+    backend_state
+        .conversation_runtime
+        .replace_transcript("Voice capture stopped.");
+
+    let next_state = apply_and_persist(IpcCommand::StopListening, backend_state);
+    emit_events(&app, IpcCommand::StopListening, &next_state)?;
+
+    Ok(next_state)
+}
+
+#[tauri::command]
+pub fn approve_action(
+    app: AppHandle,
+    state: State<'_, BackendState>,
+) -> Result<SystemState, String> {
+    let backend_state = state.inner();
+    let next_state = apply_and_persist(IpcCommand::ApproveAction, backend_state);
+    emit_events(&app, IpcCommand::ApproveAction, &next_state)?;
+
+    Ok(next_state)
+}
+
+#[tauri::command]
+pub fn deny_action(
+    app: AppHandle,
+    state: State<'_, BackendState>,
+) -> Result<SystemState, String> {
+    let backend_state = state.inner();
+    let next_state = apply_and_persist(IpcCommand::DenyAction, backend_state);
+    emit_events(&app, IpcCommand::DenyAction, &next_state)?;
+
+    Ok(next_state)
+}
+
+#[tauri::command]
+pub fn pause_execution(
+    app: AppHandle,
+    state: State<'_, BackendState>,
+) -> Result<SystemState, String> {
+    let backend_state = state.inner();
+    let next_state = apply_and_persist(IpcCommand::PauseExecution, backend_state);
+    emit_events(&app, IpcCommand::PauseExecution, &next_state)?;
+
+    Ok(next_state)
+}
+
+#[tauri::command]
+pub fn resume_execution(
+    app: AppHandle,
+    state: State<'_, BackendState>,
+) -> Result<SystemState, String> {
+    let backend_state = state.inner();
+    let next_state = apply_and_persist(IpcCommand::ResumeExecution, backend_state);
+    emit_events(&app, IpcCommand::ResumeExecution, &next_state)?;
+
+    Ok(next_state)
+}
+
+#[tauri::command]
+pub fn stop_execution(
+    app: AppHandle,
+    state: State<'_, BackendState>,
+) -> Result<SystemState, String> {
+    let backend_state = state.inner();
+    let next_state = apply_and_persist(IpcCommand::StopExecution, backend_state);
+    emit_events(&app, IpcCommand::StopExecution, &next_state)?;
+
+    Ok(next_state)
+}
+
+#[tauri::command]
+pub fn get_system_state(state: State<'_, BackendState>) -> SystemState {
+    build_system_state(state.inner())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use task_models::ConversationState;
+
+    #[derive(Default)]
+    struct MockEmitter {
+        emitted: std::sync::Mutex<Vec<String>>,
+    }
+
+    impl BridgeEventEmitter for MockEmitter {
+        fn emit_system_state(&self, event_name: &str, _state: &SystemState) -> Result<(), String> {
+            self.emitted
+                .lock()
+                .expect("mock emitter lock poisoned")
+                .push(event_name.into());
+            Ok(())
+        }
+    }
+
+    fn command_result(command: IpcCommand) -> SystemState {
+        let mut state = SystemState::default();
+        state.conversation = ConversationSlice {
+            state: ConversationState::Idle,
+            transcript: String::new(),
+        };
+        apply_ipc_command(command, &mut state);
+        state
+    }
+
+    #[test]
+    fn command_mutations_return_expected_stub_states() {
+        let approved = command_result(IpcCommand::ApproveAction);
+        assert_eq!(approved.execution.state, ExecutionState::Executing);
+        assert_eq!(approved.current_task.state, TaskState::Executing);
+        assert_eq!(approved.timeline[1].status, StepState::Running);
+
+        let denied = command_result(IpcCommand::DenyAction);
+        assert_eq!(denied.execution.state, ExecutionState::NotStarted);
+        assert_eq!(denied.current_task.state, TaskState::Cancelled);
+        assert_eq!(denied.approval.state, ApprovalFlow::Denied);
+
+        let paused = command_result(IpcCommand::PauseExecution);
+        assert_eq!(paused.execution.state, ExecutionState::Paused);
+        assert_eq!(paused.current_task.state, TaskState::Paused);
+
+        let resumed = command_result(IpcCommand::ResumeExecution);
+        assert_eq!(resumed.execution.state, ExecutionState::Executing);
+        assert_eq!(resumed.current_task.state, TaskState::Executing);
+
+        let stopped = command_result(IpcCommand::StopExecution);
+        assert_eq!(stopped.execution.state, ExecutionState::Failed);
+        assert_eq!(stopped.current_task.state, TaskState::Cancelled);
+        assert_eq!(
+            stopped
+                .current_task
+                .completion
+                .as_ref()
+                .expect("completion summary")
+                .outcome,
+            "Execution stopped by user request."
+        );
+    }
+
+    #[test]
+    fn event_emission_mapping_matches_public_channels() {
+        let emitter = MockEmitter::default();
+        let state = command_result(IpcCommand::StopExecution);
+
+        emit_events(&emitter, IpcCommand::StopExecution, &state).expect("emit stop events");
+
+        let emitted = emitter
+            .emitted
+            .lock()
+            .expect("mock emitter lock poisoned")
+            .clone();
+
+        assert_eq!(
+            emitted,
+            vec![
+                EXECUTION_STATE_CHANGED.to_string(),
+                STEP_UPDATED.to_string(),
+                TASK_COMPLETED.to_string(),
+            ]
+        );
+        assert_eq!(
+            event_names_for_command(IpcCommand::ApproveAction),
+            &[
+                INTENT_UPDATED,
+                PLAN_UPDATED,
+                APPROVAL_REQUESTED,
+                EXECUTION_STATE_CHANGED,
+                STEP_UPDATED,
+            ]
+        );
+        assert_eq!(
+            event_names_for_command(IpcCommand::StartListening),
+            &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED]
+        );
+    }
+}

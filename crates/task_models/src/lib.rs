@@ -1,7 +1,11 @@
 use serde::{Deserialize, Serialize};
+use ts_rs::{Config, TS};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub const IPC_TYPES_RELATIVE_PATH: &str = "../../src/state/ipc-types.ts";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(rename_all = "snake_case")]
 pub enum ConversationState {
     #[default]
     Idle,
@@ -13,8 +17,9 @@ pub enum ConversationState {
     Interrupted,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(rename_all = "snake_case")]
 pub enum ExecutionState {
     #[default]
     NotStarted,
@@ -26,8 +31,9 @@ pub enum ExecutionState {
     Failed,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(rename_all = "snake_case")]
 pub enum TaskState {
     #[default]
     Idle,
@@ -43,8 +49,9 @@ pub enum TaskState {
     Failed,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(rename_all = "snake_case")]
 pub enum StepState {
     #[default]
     Pending,
@@ -57,8 +64,9 @@ pub enum StepState {
     Reverted,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(rename_all = "snake_case")]
 pub enum ApprovalFlow {
     #[default]
     NotNeeded,
@@ -70,8 +78,9 @@ pub enum ApprovalFlow {
     Done,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(rename_all = "snake_case")]
 pub enum RiskLevel {
     #[default]
     Low,
@@ -79,8 +88,9 @@ pub enum RiskLevel {
     High,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(rename_all = "snake_case")]
 pub enum PlanState {
     #[default]
     Drafting,
@@ -89,98 +99,119 @@ pub enum PlanState {
     Cancelled,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
 pub struct IntentQuestion {
     pub id: String,
     pub text: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
 pub struct Intent {
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub goal: Option<String>,
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scope: Option<String>,
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub constraints: Option<String>,
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exclusions: Option<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub unresolved_questions: Vec<IntentQuestion>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
 pub struct PlanStep {
     pub id: String,
     pub description: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
 pub struct Plan {
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub steps: Vec<PlanStep>,
     #[serde(default)]
     pub plan_state: PlanState,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
 pub struct CompletionChanges {
     pub created: u64,
     pub modified: u64,
     pub moved: u64,
     pub deleted: u64,
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub network: Option<bool>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
 pub struct CompletionSummary {
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
     pub outcome: String,
     #[serde(default)]
     pub changes: CompletionChanges,
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rollback_available: Option<bool>,
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rollback_time_remaining: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
 pub struct ApprovalRequest {
     pub action: String,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub will_affect: Vec<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub will_not_affect: Vec<String>,
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub impact_summary: Option<String>,
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub command: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
 pub struct TimelineStep {
     pub id: String,
     pub description: String,
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub impact: Option<String>,
     #[serde(default)]
     pub status: StepState,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
 pub struct ConversationSlice {
     #[serde(default)]
     pub state: ConversationState,
@@ -188,42 +219,53 @@ pub struct ConversationSlice {
     pub transcript: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
 pub struct ExecutionProgress {
     pub current: u64,
     pub total: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
 pub struct ExecutionSlice {
     #[serde(default)]
     pub state: ExecutionState,
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub progress: Option<ExecutionProgress>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
 pub struct ApprovalSnapshot {
     #[serde(default)]
     pub state: ApprovalFlow,
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub request: Option<ApprovalRequest>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
 pub struct TaskSnapshot {
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub summary: Option<String>,
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub risk: Option<RiskLevel>,
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scope: Option<String>,
     #[serde(default)]
@@ -232,12 +274,14 @@ pub struct TaskSnapshot {
     pub intent: Intent,
     #[serde(default)]
     pub plan: Plan,
+    #[ts(optional)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub completion: Option<CompletionSummary>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
 pub struct SystemState {
     #[serde(default)]
     pub conversation: ConversationSlice,
@@ -247,13 +291,58 @@ pub struct SystemState {
     pub current_task: TaskSnapshot,
     #[serde(default)]
     pub approval: ApprovalSnapshot,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub timeline: Vec<TimelineStep>,
+}
+
+pub fn ipc_typescript_config() -> Config {
+    Config::new().with_large_int("number")
+}
+
+fn append_decl<T: TS>(output: &mut String, config: &Config) {
+    output.push_str("export ");
+    output.push_str(&T::decl(config));
+    output.push('\n');
+    output.push('\n');
+}
+
+pub fn ipc_typescript() -> String {
+    let config = ipc_typescript_config();
+    let mut output = String::from(
+        "// This file is generated by `cargo run -p task_models --bin export_ipc_types`.\n\
+// Do not edit it by hand.\n\n",
+    );
+
+    append_decl::<ConversationState>(&mut output, &config);
+    append_decl::<ExecutionState>(&mut output, &config);
+    append_decl::<TaskState>(&mut output, &config);
+    append_decl::<StepState>(&mut output, &config);
+    append_decl::<ApprovalFlow>(&mut output, &config);
+    append_decl::<RiskLevel>(&mut output, &config);
+    append_decl::<PlanState>(&mut output, &config);
+    append_decl::<IntentQuestion>(&mut output, &config);
+    append_decl::<Intent>(&mut output, &config);
+    append_decl::<PlanStep>(&mut output, &config);
+    append_decl::<Plan>(&mut output, &config);
+    append_decl::<CompletionChanges>(&mut output, &config);
+    append_decl::<CompletionSummary>(&mut output, &config);
+    append_decl::<ApprovalRequest>(&mut output, &config);
+    append_decl::<TimelineStep>(&mut output, &config);
+    append_decl::<ConversationSlice>(&mut output, &config);
+    append_decl::<ExecutionProgress>(&mut output, &config);
+    append_decl::<ExecutionSlice>(&mut output, &config);
+    append_decl::<ApprovalSnapshot>(&mut output, &config);
+    append_decl::<TaskSnapshot>(&mut output, &config);
+    append_decl::<SystemState>(&mut output, &config);
+
+    output
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const CHECKED_IN_IPC_TYPES: &str = include_str!("../../../src/state/ipc-types.ts");
 
     #[test]
     fn system_state_serde_round_trip_preserves_frontend_field_names() {
@@ -329,5 +418,10 @@ mod tests {
         assert_eq!(state.current_task.state, TaskState::Idle);
         assert_eq!(state.current_task.plan.plan_state, PlanState::Drafting);
         assert!(state.timeline.is_empty());
+    }
+
+    #[test]
+    fn checked_in_ipc_types_match_generated_contract() {
+        assert_eq!(CHECKED_IN_IPC_TYPES, ipc_typescript());
     }
 }

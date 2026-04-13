@@ -28,3 +28,4 @@ conversation_runtime = { path = "../crates/conversation_runtime" }
 mock_adapters = { path = "../crates/mock_adapters" }
 orchestration_runtime = { path = "../crates/orchestration_runtime" }
 policy_engine = { path = "../crates/policy_engine" }
+task_models = { path = "../crates/task_models" }

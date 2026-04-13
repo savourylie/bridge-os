@@ -44,6 +44,7 @@ export type {
   PlanState,
   PlanStepSnapshot,
   RiskLevel,
+  SystemState,
   TimedBridgeEvent,
   TimelineStepSnapshot,
 } from "@/state/events"
@@ -74,7 +75,9 @@ export {
   createBridgeStore,
   deriveExecutionProgress,
   dispatchBridgeEvent,
+  hydrateSystemState,
   resetBridgeStore,
+  replaceFromSystemState,
   type BridgeStoreApi,
   type BridgeStoreData,
   type BridgeStoreState,

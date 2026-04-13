@@ -1,3 +1,5 @@
+mod ipc;
+
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -110,6 +112,16 @@ impl BackendState {
 pub fn run() {
     tauri::Builder::default()
         .manage(BackendState::bootstrap())
+        .invoke_handler(tauri::generate_handler![
+            ipc::start_listening,
+            ipc::stop_listening,
+            ipc::approve_action,
+            ipc::deny_action,
+            ipc::pause_execution,
+            ipc::resume_execution,
+            ipc::stop_execution,
+            ipc::get_system_state,
+        ])
         .plugin(tauri_plugin_opener::init())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -8,12 +8,14 @@ import {
   type ApprovalSnapshot,
   type BridgeEvent,
   type ConversationSlice,
+  type CompletionSnapshot,
   type CurrentTaskSnapshot,
   type EventHistoryEntry,
   type ExecutionProgress,
   type ExecutionSlice,
   type IntentSnapshot,
   type PlanSnapshot,
+  type SystemState,
   type TimelineStepSnapshot,
 } from "@/state/events"
 import { stepStateMachine } from "@/state/step"
@@ -32,6 +34,7 @@ export interface BridgeStoreData {
 
 export interface BridgeStoreState extends BridgeStoreData {
   dispatch: (event: BridgeEvent) => void
+  replaceFromSystemState: (systemState: SystemState) => void
   reset: () => void
 }
 
@@ -48,12 +51,25 @@ function cloneApprovalRequest(
   return {
     ...request,
     willAffect: [...request.willAffect],
-    willNotAffect: request.willNotAffect ? [...request.willNotAffect] : undefined,
+    willNotAffect: request.willNotAffect ? [...request.willNotAffect] : [],
   }
 }
 
 function cloneTimelineStep(step: TimelineStepSnapshot): TimelineStepSnapshot {
   return { ...step }
+}
+
+function cloneCompletion(
+  completion: CompletionSnapshot | undefined,
+): CompletionSnapshot | undefined {
+  if (completion === undefined) {
+    return undefined
+  }
+
+  return {
+    ...completion,
+    changes: { ...completion.changes },
+  }
 }
 
 export function deriveExecutionProgress(
@@ -101,7 +117,9 @@ function createInitialData(): BridgeStoreData {
     },
     currentTask: {
       state: taskStateMachine.initialState,
-      intent: {},
+      intent: {
+        unresolvedQuestions: [],
+      },
       plan: {
         steps: [],
         planState: "drafting",
@@ -143,8 +161,8 @@ function mergeIntent(
     ...payload,
     unresolvedQuestions:
       hasQuestionsUpdate
-        ? payload.unresolvedQuestions?.map((question) => ({ ...question }))
-        : previousIntent.unresolvedQuestions?.map((question) => ({ ...question })),
+        ? payload.unresolvedQuestions?.map((question) => ({ ...question })) ?? []
+        : (previousIntent.unresolvedQuestions ?? []).map((question) => ({ ...question })),
   }
 }
 
@@ -161,6 +179,72 @@ function mergePlan(
       hasStepsUpdate
         ? payload.steps?.map((step) => ({ ...step })) ?? []
         : previousPlan.steps.map((step) => ({ ...step })),
+  }
+}
+
+function cloneIntent(intent: IntentSnapshot): IntentSnapshot {
+  return {
+    ...intent,
+    unresolvedQuestions: (intent.unresolvedQuestions ?? []).map((question) => ({
+      ...question,
+    })),
+  }
+}
+
+function clonePlan(plan: PlanSnapshot): PlanSnapshot {
+  return {
+    ...plan,
+    steps: plan.steps.map((step) => ({ ...step })),
+  }
+}
+
+function cloneCurrentTask(task: CurrentTaskSnapshot): CurrentTaskSnapshot {
+  return {
+    ...task,
+    intent: cloneIntent(task.intent),
+    plan: clonePlan(task.plan),
+    completion: cloneCompletion(task.completion),
+  }
+}
+
+function cloneConversation(conversation: ConversationSlice): ConversationSlice {
+  return { ...conversation }
+}
+
+function cloneExecution(execution: ExecutionSlice): ExecutionSlice {
+  return {
+    ...execution,
+    progress:
+      execution.progress === undefined
+        ? undefined
+        : { ...execution.progress },
+  }
+}
+
+function cloneApproval(approval: ApprovalSnapshot): ApprovalSnapshot {
+  return {
+    ...approval,
+    request:
+      approval.request === undefined
+        ? undefined
+        : cloneApprovalRequest(approval.request),
+  }
+}
+
+export function hydrateSystemState(systemState: SystemState): BridgeStoreData {
+  const timeline = systemState.timeline.map(cloneTimelineStep)
+  const execution = cloneExecution(systemState.execution)
+
+  return {
+    conversation: cloneConversation(systemState.conversation),
+    execution: {
+      ...execution,
+      progress: execution.progress ?? deriveExecutionProgress(timeline),
+    },
+    currentTask: cloneCurrentTask(systemState.currentTask),
+    approval: cloneApproval(systemState.approval),
+    timeline,
+    eventHistory: [],
   }
 }
 
@@ -350,6 +434,17 @@ export function createBridgeStore(
         }
       })
     },
+    replaceFromSystemState: (systemState) => {
+      set((currentState) => {
+        const nextData = hydrateSystemState(systemState)
+
+        return {
+          ...currentState,
+          ...nextData,
+          eventHistory: currentState.eventHistory,
+        }
+      })
+    },
     reset: () => {
       get().dispatch({ type: "STORE_RESET" })
     },
@@ -367,6 +462,13 @@ export function dispatchBridgeEvent(
 
 export function resetBridgeStore(store: BridgeStoreApi = bridgeStore) {
   store.getState().reset()
+}
+
+export function replaceFromSystemState(
+  systemState: SystemState,
+  store: BridgeStoreApi = bridgeStore,
+) {
+  store.getState().replaceFromSystemState(systemState)
 }
 
 export type { EventHistoryEntry }
