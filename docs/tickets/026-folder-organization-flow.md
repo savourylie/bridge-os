@@ -1,10 +1,10 @@
 # [TICKET-026] Folder Organization Flow
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #024 ✅, #025
+- Requires: #024 ✅, #025 ✅
 
 ## Description
 Implement the end-to-end folder organization task flow — the first of BridgeOS's four MVP task categories. This flow demonstrates the complete interaction loop: the user asks to organize a folder, BridgeOS interprets the intent, generates a plan, executes file operations through the mock adapter, and presents results with undo capability. This is PRD scenario 10.1 and UX_DESIGN.md Flow 1.
