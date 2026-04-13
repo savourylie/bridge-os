@@ -1,10 +1,10 @@
 # [TICKET-025] Mock Adapter System
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #023
+- Requires: #023 ✅
 
 ## Description
 Implement mock adapters for all platform-specific interfaces, enabling full BridgeOS development and testing on macOS without real Linux services. Each mock adapter implements the trait interface defined in `crates/adapters` with in-memory, simulated behavior. These mocks power the macOS development experience and serve as the backend for the demo flows.

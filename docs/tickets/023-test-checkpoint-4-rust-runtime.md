@@ -1,7 +1,7 @@
 # [TICKET-023] TEST: Checkpoint 4 — Rust Runtime
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #020 ✅, #021 ✅, #022 ✅
@@ -12,18 +12,18 @@ This checkpoint verifies that the Rust backend runtime compiles, communicates wi
 This is a gate for Phase 6 (Orchestration & Mock Adapters). The orchestration runtime depends on all three components verified here: IPC bridge, conversation runtime, and policy engine.
 
 ## Acceptance Criteria
-- [ ] `cargo build --workspace` compiles all crates without errors or warnings
-- [ ] `cargo test --workspace` passes all unit tests
-- [ ] Tauri app launches and the frontend connects to the Rust backend
-- [ ] Frontend can invoke `get_system_state` and receive a valid response
-- [ ] Frontend can invoke `start_listening` and the conversation state transitions to `listening`
-- [ ] Conversation state changes propagate to the frontend via IPC events
-- [ ] VoiceBar and StatusCapsule update in response to backend state changes
-- [ ] Mock transcript text sent from the backend appears in the VoiceBar
-- [ ] Policy engine correctly classifies at least one action of each risk level (low, medium, high)
-- [ ] Policy engine rejects actions outside approved folder scope
-- [ ] Interruption signal from frontend reaches backend and transitions conversation to `interrupted`
-- [ ] All IPC payloads serialize/deserialize without errors
+- [x] `cargo build --workspace` compiles all crates without errors or warnings
+- [x] `cargo test --workspace` passes all unit tests
+- [x] Tauri app launches and the frontend connects to the Rust backend
+- [x] Frontend can invoke `get_system_state` and receive a valid response
+- [x] Frontend can invoke `start_listening` and the conversation state transitions to `listening`
+- [x] Conversation state changes propagate to the frontend via IPC events
+- [x] VoiceBar and StatusCapsule update in response to backend state changes
+- [x] Mock transcript text sent from the backend appears in the VoiceBar
+- [x] Policy engine correctly classifies at least one action of each risk level (low, medium, high)
+- [x] Policy engine rejects actions outside approved folder scope
+- [x] Interruption signal from frontend reaches backend and transitions conversation to `interrupted`
+- [x] All IPC payloads serialize/deserialize without errors
 
 ## Implementation Notes
 This is a manual test execution ticket — no code changes unless bugs are found during testing.

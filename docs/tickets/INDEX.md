@@ -7,10 +7,10 @@
 
 | Status        | Count |
 | ------------- | ----- |
-| ✅ Done        | 22    |
+| ✅ Done        | 23    |
 | 🔧 In Progress | 0     |
-| 📋 Pending     | 1     |
-| 🚫 Blocked     | 13    |
+| 📋 Pending     | 2     |
+| 🚫 Blocked     | 11    |
 | ⏸️ Deferred    | 0     |
 
 ---
@@ -63,14 +63,14 @@
 | 020 | [Tauri IPC Bridge](./020-tauri-ipc-bridge.md)                                              | `done`    | #019 ✅          | IPC bridge complete |
 | 021 | [Conversation Runtime (Rust)](./021-conversation-runtime.md)                                | `done`    | #020 ✅          | Conversation runtime complete |
 | 022 | [Policy Engine](./022-policy-engine.md)                                                    | `done`    | #019 ✅          | Policy engine complete |
-| 023 | [**TEST: Checkpoint 4 — Rust Runtime**](./023-test-checkpoint-4-rust-runtime.md)           | `pending` | #020–#022        | Unblocked — #022 now done |
+| 023 | [**TEST: Checkpoint 4 — Rust Runtime**](./023-test-checkpoint-4-rust-runtime.md)           | `done`    | #020–#022        | Gate: Phase 5 — All criteria passed |
 
 ## Phase 6 — Orchestration & Mock Adapters
 
 | #   | Ticket                                                                                     | Status    | Depends On       | Notes |
 | --- | ------------------------------------------------------------------------------------------ | --------- | ---------------- | ----- |
-| 024 | [Orchestration Runtime](./024-orchestration-runtime.md)                                    | `blocked` | #023             |       |
-| 025 | [Mock Adapter System](./025-mock-adapter-system.md)                                        | `blocked` | #023             |       |
+| 024 | [Orchestration Runtime](./024-orchestration-runtime.md)                                    | `pending` | #023 ✅          | Unblocked — #023 now done |
+| 025 | [Mock Adapter System](./025-mock-adapter-system.md)                                        | `pending` | #023 ✅          | Unblocked — #023 now done |
 | 026 | [Folder Organization Flow](./026-folder-organization-flow.md)                              | `blocked` | #024, #025       |       |
 | 027 | [Project Inspection & Commands](./027-project-inspection-and-commands.md)                   | `blocked` | #024, #025       |       |
 | 028 | [**TEST: Checkpoint 5 — Mock Task Flows**](./028-test-checkpoint-5-mock-flows.md)          | `blocked` | #026, #027       | Gate: Phase 6 |

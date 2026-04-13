@@ -1,10 +1,10 @@
 # [TICKET-024] Orchestration Runtime
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #023
+- Requires: #023 ✅
 
 ## Description
 Implement the orchestration runtime — the operational core of BridgeOS that handles intent parsing, intent stabilization, plan generation, task state management, tool routing, and execution coordination. This module takes a stabilized user intent, generates an action plan, validates each step against the policy engine, executes steps sequentially through adapters, and emits events for every meaningful state change.
