@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils"
 
 interface ApprovalCardProps {
   action: string
+  riskLevel: "low" | "medium" | "high"
+  explanation: string
   willAffect: string[]
   willNotAffect?: string[]
   impactSummary?: string
@@ -21,8 +23,25 @@ interface ApprovalCardProps {
 // ApprovalCard
 // ---------------------------------------------------------------------------
 
+const RISK_LEVEL_CONFIG = {
+  low: {
+    label: "Low risk",
+    className: "text-teal",
+  },
+  medium: {
+    label: "Medium risk",
+    className: "text-brand",
+  },
+  high: {
+    label: "High risk",
+    className: "text-error",
+  },
+} as const
+
 function ApprovalCard({
   action,
+  riskLevel,
+  explanation,
   willAffect,
   willNotAffect,
   impactSummary,
@@ -31,6 +50,8 @@ function ApprovalCard({
   onDeny,
   className,
 }: ApprovalCardProps) {
+  const riskConfig = RISK_LEVEL_CONFIG[riskLevel]
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -8 }}
@@ -43,10 +64,14 @@ function ApprovalCard({
       }}
     >
       {/* Header */}
-      <h3 className="type-h3 text-ink">Approval Required</h3>
+      <div className="flex items-center justify-between gap-4">
+        <h3 className="type-h3 text-ink">Approval Required</h3>
+        <span className={cn("type-label", riskConfig.className)}>{riskConfig.label}</span>
+      </div>
 
       {/* Action description */}
       <p className="type-body text-body-text mt-2">{action}</p>
+      <p className="type-body-sm text-subtle mt-3">{explanation}</p>
 
       {/* Will affect list */}
       <div className="mt-4">

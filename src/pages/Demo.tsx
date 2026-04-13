@@ -401,6 +401,8 @@ export default function DemoPage({
           {approval.state === "requested" && approval.request && (
             <ApprovalCard
               action={approval.request.action}
+              riskLevel={approval.request.riskLevel}
+              explanation={approval.request.explanation}
               willAffect={approval.request.willAffect}
               willNotAffect={approval.request.willNotAffect}
               impactSummary={approval.request.impactSummary}

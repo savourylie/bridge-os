@@ -184,6 +184,8 @@ pub struct CompletionSummary {
 #[ts(rename_all = "camelCase")]
 pub struct ApprovalRequest {
     pub action: String,
+    pub risk_level: RiskLevel,
+    pub explanation: String,
     #[serde(default)]
     pub will_affect: Vec<String>,
     #[serde(default)]
@@ -393,6 +395,10 @@ mod tests {
                 state: ApprovalFlow::Requested,
                 request: Some(ApprovalRequest {
                     action: "Move 14 files".into(),
+                    risk_level: RiskLevel::Medium,
+                    explanation:
+                        "This action changes files inside an approved workspace, so it needs confirmation before writing."
+                            .into(),
                     will_affect: vec!["~/Downloads".into()],
                     impact_summary: Some("Reorganizes screenshots into dated folders".into()),
                     ..ApprovalRequest::default()

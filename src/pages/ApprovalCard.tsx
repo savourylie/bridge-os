@@ -43,6 +43,8 @@ export default function ApprovalCardPage() {
 
           <ApprovalCard
             action="Install ffmpeg via apt"
+            riskLevel="high"
+            explanation="Installing a package changes the system and may require network access or elevation."
             willAffect={[
               "install a new system package",
               "require administrator privileges",
@@ -66,6 +68,8 @@ export default function ApprovalCardPage() {
 
           <ApprovalCard
             action="Move 23 screenshots to ~/Downloads/Screenshots-Week-15"
+            riskLevel="medium"
+            explanation="This action changes files inside an approved workspace, so it pauses for confirmation before writing."
             willAffect={[
               "move 23 files from current location",
               "create a new directory",
@@ -91,6 +95,8 @@ export default function ApprovalCardPage() {
 
           <ApprovalCard
             action="Rename 15 files in ~/Projects/assets using kebab-case convention"
+            riskLevel="medium"
+            explanation="This action changes project files inside an approved workspace, so it pauses for confirmation before writing."
             willAffect={[
               "rename 15 files in place",
               "update filenames to kebab-case",
@@ -114,6 +120,8 @@ export default function ApprovalCardPage() {
 
           <ApprovalCard
             action="Delete cached build artifacts from ~/.cache/bridge-os"
+            riskLevel="high"
+            explanation="Deleting files is a high-impact action and requires explicit approval."
             willAffect={[
               "remove 312 cached files",
               "free ~1.2 GB of disk space",

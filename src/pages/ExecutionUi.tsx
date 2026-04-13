@@ -178,6 +178,8 @@ export default function ExecutionUiPage() {
           <Timeline data={MOCK_TIMELINE} />
           <ApprovalCard
             action="Move 133 screenshots into month folders inside ~/Downloads"
+            riskLevel="medium"
+            explanation="This action changes files inside an approved workspace, so it pauses for confirmation before writing."
             willAffect={[
               "create 6 month folders inside ~/Downloads",
               "move 133 screenshots without changing filenames",

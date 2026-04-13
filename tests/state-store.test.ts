@@ -45,6 +45,9 @@ const BASE_TIMELINE: TimelineStepSnapshot[] = [
 
 const APPROVAL_REQUEST: ApprovalRequestSnapshot = {
   action: "Move screenshots into month folders inside ~/Downloads",
+  riskLevel: "medium",
+  explanation:
+    "This action changes files inside an approved workspace, so it pauses for confirmation before writing.",
   willAffect: [
     "create 6 month folders inside ~/Downloads",
     "move 133 screenshots without changing filenames",

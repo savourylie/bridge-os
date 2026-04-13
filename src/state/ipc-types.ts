@@ -27,7 +27,7 @@ export type CompletionChanges = { created: number, modified: number, moved: numb
 
 export type CompletionSummary = { title?: string, outcome: string, changes: CompletionChanges, rollbackAvailable?: boolean, rollbackTimeRemaining?: string, };
 
-export type ApprovalRequest = { action: string, willAffect: Array<string>, willNotAffect: Array<string>, impactSummary?: string, command?: string, };
+export type ApprovalRequest = { action: string, riskLevel: RiskLevel, explanation: string, willAffect: Array<string>, willNotAffect: Array<string>, impactSummary?: string, command?: string, };
 
 export type TimelineStep = { id: string, description: string, impact?: string, status: StepState, };
 

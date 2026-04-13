@@ -1,11 +1,12 @@
 use adapters::TranscriptChunk;
-use tauri::{AppHandle, State};
+use policy_engine::{PolicyAction, PolicyActionKind, PolicyDecision};
 use task_models::{
     ApprovalFlow, ApprovalRequest, ApprovalSnapshot, CompletionChanges, CompletionSummary,
-    ConversationSlice, ConversationState, ExecutionProgress, ExecutionState, ExecutionSlice,
-    Intent, Plan, PlanState, PlanStep, RiskLevel, StepState, SystemState, TaskState,
+    ConversationSlice, ConversationState, ExecutionProgress, ExecutionSlice, ExecutionState,
+    Intent, Plan, PlanState, PlanStep, StepState, SystemState, TaskSnapshot, TaskState,
     TimelineStep, TranscriptChunkInput,
 };
+use tauri::{AppHandle, State};
 
 use crate::BackendState;
 
@@ -41,25 +42,6 @@ impl BridgeEventEmitter for AppHandle {
 
         self.emit(event_name, state.clone())
             .map_err(|error| error.to_string())
-    }
-}
-
-fn placeholder_approval_request() -> ApprovalRequest {
-    ApprovalRequest {
-        action: "Move screenshots into month folders inside ~/Downloads".into(),
-        will_affect: vec![
-            "create dated folders inside ~/Downloads".into(),
-            "move screenshots without changing filenames".into(),
-        ],
-        will_not_affect: vec![
-            "delete files".into(),
-            "write outside ~/Downloads".into(),
-        ],
-        impact_summary: Some("Writes remain inside ~/Downloads only.".into()),
-        command: Some(
-            "bridgeos file-organize --target ~/Downloads --group-by month --exclude pdf,zip"
-                .into(),
-        ),
     }
 }
 
@@ -129,6 +111,44 @@ fn derive_execution_progress(timeline: &[TimelineStep]) -> Option<ExecutionProgr
     })
 }
 
+fn placeholder_policy_action() -> PolicyAction {
+    PolicyAction {
+        kind: PolicyActionKind::MoveFile,
+        description: "Move screenshots into month folders inside ~/Downloads".into(),
+        affected_resources: vec!["~/Downloads".into()],
+        command: Some(
+            "bridgeos file-organize --target ~/Downloads --group-by month --exclude pdf,zip".into(),
+        ),
+    }
+}
+
+fn placeholder_approval_request(
+    action: &PolicyAction,
+    decision: &PolicyDecision,
+) -> ApprovalRequest {
+    let affected_scope = decision
+        .affected_resources
+        .first()
+        .cloned()
+        .unwrap_or_else(|| "the approved workspace".into());
+
+    ApprovalRequest {
+        action: action.description.clone(),
+        risk_level: decision.risk_level,
+        explanation: decision.explanation.clone(),
+        will_affect: vec![
+            "create dated folders inside ~/Downloads".into(),
+            "move screenshots without changing filenames".into(),
+        ],
+        will_not_affect: vec![
+            "delete files".into(),
+            "write outside the approved folders".into(),
+        ],
+        impact_summary: Some(format!("Writes remain inside {affected_scope} only.")),
+        command: action.command.clone(),
+    }
+}
+
 fn seed_placeholder_task(state: &mut SystemState) {
     if state.current_task.id.is_none() {
         state.current_task.id = Some("task-020-placeholder".into());
@@ -141,10 +161,6 @@ fn seed_placeholder_task(state: &mut SystemState) {
     if state.current_task.summary.is_none() {
         state.current_task.summary =
             Some("Stub runtime task used to validate the Tauri IPC bridge.".into());
-    }
-
-    if state.current_task.risk.is_none() {
-        state.current_task.risk = Some(RiskLevel::Medium);
     }
 
     if state.current_task.scope.is_none() {
@@ -172,9 +188,77 @@ fn seed_placeholder_task(state: &mut SystemState) {
     if state.timeline.is_empty() {
         state.timeline = placeholder_timeline();
     }
+}
 
-    if state.approval.request.is_none() {
-        state.approval.request = Some(placeholder_approval_request());
+fn reset_runtime_for_new_listening_session(state: &mut SystemState) {
+    state.current_task = TaskSnapshot {
+        state: TaskState::Listening,
+        ..TaskSnapshot::default()
+    };
+    state.execution = ExecutionSlice {
+        state: ExecutionState::NotStarted,
+        progress: None,
+    };
+    state.approval = ApprovalSnapshot::default();
+    state.timeline.clear();
+}
+
+fn sync_policy_state_for_locked_intent(backend_state: &BackendState, state: &mut SystemState) {
+    if state.conversation.state != ConversationState::IntentLocked {
+        return;
+    }
+
+    if state.execution.state != ExecutionState::NotStarted {
+        return;
+    }
+
+    if !matches!(
+        state.approval.state,
+        ApprovalFlow::NotNeeded | ApprovalFlow::Editing
+    ) {
+        return;
+    }
+
+    seed_placeholder_task(state);
+
+    let action = placeholder_policy_action();
+    let decision = backend_state.orchestration_runtime.evaluate_action(&action);
+    state.current_task.risk = Some(decision.risk_level);
+    state.current_task.state = if decision.approval_required {
+        TaskState::WaitingApproval
+    } else {
+        TaskState::Planning
+    };
+    state.current_task.plan.plan_state = PlanState::Ready;
+    state.execution = ExecutionSlice {
+        state: if decision.approval_required {
+            ExecutionState::WaitingConfirmation
+        } else {
+            ExecutionState::DraftingPlan
+        },
+        progress: None,
+    };
+
+    if decision.approval_required {
+        state.approval = ApprovalSnapshot {
+            state: ApprovalFlow::Requested,
+            request: Some(placeholder_approval_request(&action, &decision)),
+        };
+        set_step_status(
+            &mut state.timeline,
+            0,
+            StepState::Completed,
+            Some("Planning completed inside the approved folder scope."),
+        );
+        set_step_status(
+            &mut state.timeline,
+            1,
+            StepState::WaitingApproval,
+            Some("Awaiting confirmation before BridgeOS moves files in ~/Downloads."),
+        );
+        set_step_status(&mut state.timeline, 2, StepState::Pending, None);
+    } else {
+        state.approval = ApprovalSnapshot::default();
     }
 }
 
@@ -192,42 +276,63 @@ fn set_step_status(
     }
 }
 
-fn event_names_for_command(command: IpcCommand) -> &'static [&'static str] {
+fn event_names_for_command(command: IpcCommand, state: &SystemState) -> Vec<&'static str> {
     match command {
-        IpcCommand::StartListening => &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED],
-        IpcCommand::StopListening => &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED],
-        IpcCommand::SubmitTranscriptChunk => &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED],
-        IpcCommand::InterruptConversation => &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED],
-        IpcCommand::ApproveAction => &[
+        IpcCommand::StartListening => vec![CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED],
+        IpcCommand::StopListening => vec![CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED],
+        IpcCommand::SubmitTranscriptChunk => {
+            let mut events = vec![CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED];
+            if state.approval.state == ApprovalFlow::Requested {
+                events.extend([
+                    INTENT_UPDATED,
+                    PLAN_UPDATED,
+                    EXECUTION_STATE_CHANGED,
+                    STEP_UPDATED,
+                    APPROVAL_REQUESTED,
+                ]);
+            }
+            events
+        }
+        IpcCommand::InterruptConversation => vec![CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED],
+        IpcCommand::ApproveAction => vec![
             INTENT_UPDATED,
             PLAN_UPDATED,
             APPROVAL_REQUESTED,
             EXECUTION_STATE_CHANGED,
             STEP_UPDATED,
         ],
-        IpcCommand::DenyAction => &[
+        IpcCommand::DenyAction => vec![
             INTENT_UPDATED,
             PLAN_UPDATED,
             APPROVAL_REQUESTED,
             EXECUTION_STATE_CHANGED,
             STEP_UPDATED,
         ],
-        IpcCommand::PauseExecution => &[EXECUTION_STATE_CHANGED, STEP_UPDATED],
-        IpcCommand::ResumeExecution => &[EXECUTION_STATE_CHANGED, STEP_UPDATED],
-        IpcCommand::StopExecution => &[EXECUTION_STATE_CHANGED, STEP_UPDATED, TASK_COMPLETED],
+        IpcCommand::PauseExecution => vec![EXECUTION_STATE_CHANGED, STEP_UPDATED],
+        IpcCommand::ResumeExecution => vec![EXECUTION_STATE_CHANGED, STEP_UPDATED],
+        IpcCommand::StopExecution => vec![EXECUTION_STATE_CHANGED, STEP_UPDATED, TASK_COMPLETED],
     }
 }
 
 fn apply_ipc_command(command: IpcCommand, state: &mut SystemState) {
     match command {
         IpcCommand::StartListening => {
-            if matches!(state.current_task.state, TaskState::Idle | TaskState::Cancelled) {
-                state.current_task.state = TaskState::Listening;
+            if matches!(
+                state.current_task.state,
+                TaskState::Idle | TaskState::Cancelled
+            ) {
+                reset_runtime_for_new_listening_session(state);
             }
         }
         IpcCommand::StopListening => {
             if state.current_task.state == TaskState::Listening {
-                state.current_task.state = TaskState::Idle;
+                state.current_task = TaskSnapshot::default();
+                state.execution = ExecutionSlice {
+                    state: ExecutionState::NotStarted,
+                    progress: None,
+                };
+                state.approval = ApprovalSnapshot::default();
+                state.timeline.clear();
             }
         }
         IpcCommand::SubmitTranscriptChunk | IpcCommand::InterruptConversation => {}
@@ -241,7 +346,7 @@ fn apply_ipc_command(command: IpcCommand, state: &mut SystemState) {
             };
             state.approval = ApprovalSnapshot {
                 state: ApprovalFlow::Done,
-                request: Some(placeholder_approval_request()),
+                request: state.approval.request.clone(),
             };
 
             set_step_status(
@@ -267,7 +372,7 @@ fn apply_ipc_command(command: IpcCommand, state: &mut SystemState) {
             };
             state.approval = ApprovalSnapshot {
                 state: ApprovalFlow::Denied,
-                request: Some(placeholder_approval_request()),
+                request: state.approval.request.clone(),
             };
 
             set_step_status(
@@ -389,6 +494,10 @@ fn sync_placeholder_task_state_for_conversation(state: &mut SystemState) {
         return;
     }
 
+    if state.approval.state == ApprovalFlow::Requested {
+        return;
+    }
+
     match state.conversation.state {
         ConversationState::Idle => {
             if state.current_task.state == TaskState::Listening {
@@ -396,7 +505,10 @@ fn sync_placeholder_task_state_for_conversation(state: &mut SystemState) {
             }
         }
         ConversationState::Listening => {
-            if matches!(state.current_task.state, TaskState::Idle | TaskState::Cancelled) {
+            if matches!(
+                state.current_task.state,
+                TaskState::Idle | TaskState::Cancelled
+            ) {
                 state.current_task.state = TaskState::Listening;
             }
         }
@@ -416,6 +528,7 @@ fn build_system_state(backend_state: &BackendState) -> SystemState {
     let mut state = backend_state.orchestration_runtime.system_state();
     sync_conversation_slice(backend_state, &mut state);
     sync_placeholder_task_state_for_conversation(&mut state);
+    sync_policy_state_for_locked_intent(backend_state, &mut state);
 
     if state.execution.progress.is_none() {
         state.execution.progress = derive_execution_progress(&state.timeline);
@@ -442,7 +555,7 @@ fn emit_events<E: BridgeEventEmitter>(
     command: IpcCommand,
     state: &SystemState,
 ) -> Result<(), String> {
-    for event_name in event_names_for_command(command) {
+    for event_name in event_names_for_command(command, state) {
         emitter.emit_system_state(event_name, state)?;
     }
 
@@ -536,10 +649,7 @@ pub fn approve_action(
 }
 
 #[tauri::command]
-pub fn deny_action(
-    app: AppHandle,
-    state: State<'_, BackendState>,
-) -> Result<SystemState, String> {
+pub fn deny_action(app: AppHandle, state: State<'_, BackendState>) -> Result<SystemState, String> {
     let backend_state = state.inner();
     let next_state = apply_and_persist(IpcCommand::DenyAction, backend_state);
     emit_events(&app, IpcCommand::DenyAction, &next_state)?;
@@ -608,37 +718,49 @@ mod tests {
         }
     }
 
-    fn command_result(command: IpcCommand) -> SystemState {
-        let mut state = SystemState::default();
-        state.conversation = ConversationSlice {
-            state: ConversationState::Idle,
-            transcript: String::new(),
-        };
+    fn command_result(mut state: SystemState, command: IpcCommand) -> SystemState {
         apply_ipc_command(command, &mut state);
         state
     }
 
+    fn requested_state() -> SystemState {
+        let backend_state = BackendState::bootstrap();
+        block_on(backend_state.conversation_runtime.start_listening()).expect("start listening");
+        backend_state
+            .conversation_runtime
+            .submit_transcript_chunk(TranscriptChunk {
+                text: "this week".into(),
+                is_final: true,
+            })
+            .expect("submit final transcript");
+
+        apply_and_persist(IpcCommand::SubmitTranscriptChunk, &backend_state)
+    }
+
     #[test]
     fn command_mutations_return_expected_stub_states() {
-        let approved = command_result(IpcCommand::ApproveAction);
+        let requested = requested_state();
+        let approved = command_result(requested.clone(), IpcCommand::ApproveAction);
         assert_eq!(approved.execution.state, ExecutionState::Executing);
         assert_eq!(approved.current_task.state, TaskState::Executing);
         assert_eq!(approved.timeline[1].status, StepState::Running);
+        assert_eq!(approved.approval.request, requested.approval.request);
 
-        let denied = command_result(IpcCommand::DenyAction);
+        let denied = command_result(requested.clone(), IpcCommand::DenyAction);
         assert_eq!(denied.execution.state, ExecutionState::NotStarted);
         assert_eq!(denied.current_task.state, TaskState::Cancelled);
         assert_eq!(denied.approval.state, ApprovalFlow::Denied);
+        assert_eq!(denied.approval.request, requested.approval.request);
 
-        let paused = command_result(IpcCommand::PauseExecution);
+        let paused = command_result(requested.clone(), IpcCommand::PauseExecution);
         assert_eq!(paused.execution.state, ExecutionState::Paused);
         assert_eq!(paused.current_task.state, TaskState::Paused);
 
-        let resumed = command_result(IpcCommand::ResumeExecution);
+        let resumed = command_result(requested.clone(), IpcCommand::ResumeExecution);
         assert_eq!(resumed.execution.state, ExecutionState::Executing);
         assert_eq!(resumed.current_task.state, TaskState::Executing);
 
-        let stopped = command_result(IpcCommand::StopExecution);
+        let stopped = command_result(requested, IpcCommand::StopExecution);
         assert_eq!(stopped.execution.state, ExecutionState::Failed);
         assert_eq!(stopped.current_task.state, TaskState::Cancelled);
         assert_eq!(
@@ -655,7 +777,7 @@ mod tests {
     #[test]
     fn event_emission_mapping_matches_public_channels() {
         let emitter = MockEmitter::default();
-        let state = command_result(IpcCommand::StopExecution);
+        let state = command_result(requested_state(), IpcCommand::StopExecution);
 
         emit_events(&emitter, IpcCommand::StopExecution, &state).expect("emit stop events");
 
@@ -674,8 +796,8 @@ mod tests {
             ]
         );
         assert_eq!(
-            event_names_for_command(IpcCommand::ApproveAction),
-            &[
+            event_names_for_command(IpcCommand::ApproveAction, &state),
+            vec![
                 INTENT_UPDATED,
                 PLAN_UPDATED,
                 APPROVAL_REQUESTED,
@@ -684,16 +806,24 @@ mod tests {
             ]
         );
         assert_eq!(
-            event_names_for_command(IpcCommand::StartListening),
-            &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED]
+            event_names_for_command(IpcCommand::StartListening, &state),
+            vec![CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED]
         );
         assert_eq!(
-            event_names_for_command(IpcCommand::SubmitTranscriptChunk),
-            &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED]
+            event_names_for_command(IpcCommand::SubmitTranscriptChunk, &requested_state()),
+            vec![
+                CONVERSATION_STATE_CHANGED,
+                TRANSCRIPT_UPDATED,
+                INTENT_UPDATED,
+                PLAN_UPDATED,
+                EXECUTION_STATE_CHANGED,
+                STEP_UPDATED,
+                APPROVAL_REQUESTED,
+            ]
         );
         assert_eq!(
-            event_names_for_command(IpcCommand::InterruptConversation),
-            &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED]
+            event_names_for_command(IpcCommand::InterruptConversation, &state),
+            vec![CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED]
         );
     }
 
@@ -702,12 +832,14 @@ mod tests {
         let backend_state = BackendState::bootstrap();
         let emitter = MockEmitter::default();
 
-        block_on(backend_state.conversation_runtime.start_listening())
-            .expect("start listening");
+        block_on(backend_state.conversation_runtime.start_listening()).expect("start listening");
         let listening_state = apply_and_persist(IpcCommand::StartListening, &backend_state);
         emit_events(&emitter, IpcCommand::StartListening, &listening_state)
             .expect("emit listening events");
-        assert_eq!(listening_state.conversation.state, ConversationState::Listening);
+        assert_eq!(
+            listening_state.conversation.state,
+            ConversationState::Listening
+        );
         assert_eq!(listening_state.current_task.state, TaskState::Listening);
 
         backend_state
@@ -732,8 +864,40 @@ mod tests {
             })
             .expect("submit final transcript");
         let locked_state = apply_and_persist(IpcCommand::SubmitTranscriptChunk, &backend_state);
-        assert_eq!(locked_state.conversation.state, ConversationState::IntentLocked);
+        assert_eq!(
+            locked_state.conversation.state,
+            ConversationState::IntentLocked
+        );
         assert_eq!(locked_state.conversation.transcript, "this week");
+        assert_eq!(locked_state.current_task.state, TaskState::WaitingApproval);
+        assert_eq!(
+            locked_state.execution.state,
+            ExecutionState::WaitingConfirmation
+        );
+        assert_eq!(
+            locked_state.current_task.risk,
+            Some(task_models::RiskLevel::Medium)
+        );
+        assert_eq!(locked_state.approval.state, ApprovalFlow::Requested);
+        assert_eq!(
+            locked_state
+                .approval
+                .request
+                .as_ref()
+                .expect("approval request")
+                .risk_level,
+            task_models::RiskLevel::Medium
+        );
+        assert_eq!(
+            locked_state
+                .approval
+                .request
+                .as_ref()
+                .expect("approval request")
+                .explanation,
+            "This action changes files or folders inside an approved workspace, so it pauses for confirmation before writing."
+        );
+        assert_eq!(locked_state.timeline[1].status, StepState::WaitingApproval);
 
         backend_state
             .conversation_runtime
@@ -766,5 +930,24 @@ mod tests {
 
         let after = build_system_state(&backend_state);
         assert_eq!(before, after);
+    }
+
+    #[test]
+    fn final_transcript_emits_policy_backed_approval_channels() {
+        let emitter = MockEmitter::default();
+        let state = requested_state();
+
+        emit_events(&emitter, IpcCommand::SubmitTranscriptChunk, &state)
+            .expect("emit transcript events");
+
+        let emitted = emitter
+            .emitted
+            .lock()
+            .expect("mock emitter lock poisoned")
+            .clone();
+
+        assert!(emitted.contains(&APPROVAL_REQUESTED.to_string()));
+        assert!(emitted.contains(&EXECUTION_STATE_CHANGED.to_string()));
+        assert!(emitted.contains(&INTENT_UPDATED.to_string()));
     }
 }
