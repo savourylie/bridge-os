@@ -7,10 +7,10 @@
 
 | Status        | Count |
 | ------------- | ----- |
-| ✅ Done        | 19    |
+| ✅ Done        | 20    |
 | 🔧 In Progress | 0     |
 | 📋 Pending     | 2     |
-| 🚫 Blocked     | 15    |
+| 🚫 Blocked     | 14    |
 | ⏸️ Deferred    | 0     |
 
 ---
@@ -60,8 +60,8 @@
 | #   | Ticket                                                                                     | Status    | Depends On       | Notes |
 | --- | ------------------------------------------------------------------------------------------ | --------- | ---------------- | ----- |
 | 019 | [Rust Project Structure](./019-rust-project-structure.md)                                  | `done`    | #018 ✅          | Workspace foundation complete |
-| 020 | [Tauri IPC Bridge](./020-tauri-ipc-bridge.md)                                              | `pending` | #019 ✅          | Unblocked — #019 now done |
-| 021 | [Conversation Runtime (Rust)](./021-conversation-runtime.md)                                | `blocked` | #020             |       |
+| 020 | [Tauri IPC Bridge](./020-tauri-ipc-bridge.md)                                              | `done`    | #019 ✅          | IPC bridge complete |
+| 021 | [Conversation Runtime (Rust)](./021-conversation-runtime.md)                                | `pending` | #020 ✅          | Unblocked — #020 now done |
 | 022 | [Policy Engine](./022-policy-engine.md)                                                    | `pending` | #019 ✅          | Unblocked — #019 now done |
 | 023 | [**TEST: Checkpoint 4 — Rust Runtime**](./023-test-checkpoint-4-rust-runtime.md)           | `blocked` | #020–#022        | Gate: Phase 5 |
 

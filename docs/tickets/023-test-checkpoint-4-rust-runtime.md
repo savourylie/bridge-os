@@ -4,7 +4,7 @@
 `blocked`
 
 ## Dependencies
-- Requires: #020, #021, #022
+- Requires: #020 ✅, #021, #022
 
 ## Description
 This checkpoint verifies that the Rust backend runtime compiles, communicates with the frontend via IPC, and correctly implements the conversation state machine and policy engine. It validates the backend-frontend communication spine before building the full orchestration system.

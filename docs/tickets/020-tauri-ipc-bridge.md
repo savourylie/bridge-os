@@ -1,7 +1,7 @@
 # [TICKET-020] Tauri IPC Bridge
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #019 ✅
@@ -10,7 +10,7 @@
 Implement the Tauri IPC bridge that connects the React frontend to the Rust backend runtime. This defines the command interface and event channel through which the frontend dispatches user actions (voice input, approvals, control commands) and the backend emits state updates (transcript updates, intent changes, execution progress). The IPC bridge is the communication spine of BridgeOS.
 
 ## Acceptance Criteria
-- [ ] Tauri commands are defined for frontend → backend communication:
+- [x] Tauri commands are defined for frontend → backend communication:
   - `start_listening` — initiate voice capture
   - `stop_listening` — stop voice capture
   - `approve_action` — user approves a pending approval
@@ -19,7 +19,7 @@ Implement the Tauri IPC bridge that connects the React frontend to the Rust back
   - `resume_execution` — resume paused task
   - `stop_execution` — cancel current task
   - `get_system_state` — query current state snapshot
-- [ ] Tauri event channels are defined for backend → frontend communication:
+- [x] Tauri event channels are defined for backend → frontend communication:
   - `conversation_state_changed` — conversation state updates
   - `transcript_updated` — live transcript text
   - `intent_updated` — intent field changes
@@ -28,10 +28,10 @@ Implement the Tauri IPC bridge that connects the React frontend to the Rust back
   - `step_updated` — individual step status changes
   - `approval_requested` — new approval needed
   - `task_completed` — task finished with results
-- [ ] TypeScript types match Rust types for all IPC payloads (type-safe bridge)
-- [ ] Frontend can invoke commands and receive responses
-- [ ] Frontend can listen to event channels and update state store accordingly
-- [ ] A basic round-trip test works: frontend calls `get_system_state`, backend returns current state
+- [x] TypeScript types match Rust types for all IPC payloads (type-safe bridge)
+- [x] Frontend can invoke commands and receive responses
+- [x] Frontend can listen to event channels and update state store accordingly
+- [x] A basic round-trip test works: frontend calls `get_system_state`, backend returns current state
 
 ## Implementation Notes
 - Use Tauri 2's `tauri::command` for commands and `tauri::Emitter` for events

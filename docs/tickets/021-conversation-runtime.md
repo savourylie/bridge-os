@@ -1,10 +1,10 @@
 # [TICKET-021] Conversation Runtime (Rust)
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #020
+- Requires: #020 ✅
 
 ## Description
 Implement the conversation runtime in Rust — the module responsible for managing voice interaction state, transcript lifecycle, turn-taking logic, and user-holding-turn detection. This module runs in the Rust backend and communicates state changes to the frontend via the Tauri IPC bridge. It implements the conversation state machine and turn-holding policy from UX_DESIGN.md.
