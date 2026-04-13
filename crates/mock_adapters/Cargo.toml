@@ -7,3 +7,6 @@ edition.workspace = true
 async-trait.workspace = true
 adapters = { path = "../adapters" }
 task_models = { path = "../task_models" }
+
+[dev-dependencies]
+futures = "0.3"

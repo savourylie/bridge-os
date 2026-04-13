@@ -56,6 +56,7 @@ impl MockAdapterBundle {
             package_manager: Arc::new(MockPackageManagerAdapter::new(MockPackageManagerConfig {
                 packages: HashMap::new(),
                 install_succeeds: true,
+                install_latency_ms: None,
             })),
             desktop: Arc::new(MockDesktopAdapter::new(MockDesktopConfig {
                 active_window: ActiveWindowInfo {

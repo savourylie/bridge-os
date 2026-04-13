@@ -14,6 +14,13 @@ edition.workspace = true
 name = "bridgeos_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
+[features]
+# Compile with mock adapters (default for macOS dev).
+# When real Linux adapters land, add a `linux-adapters` feature here
+# and make mock_adapters an optional dep gated on this feature.
+default = ["mock-adapters"]
+mock-adapters = []
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
