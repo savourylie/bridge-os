@@ -1,7 +1,7 @@
 # [TICKET-022] Policy Engine
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #019 ✅
@@ -10,14 +10,14 @@
 Implement the policy engine — the module that classifies action risk levels and determines when approval is required. This is central to BridgeOS's trust model: it ensures sensitive actions are surfaced before they happen, not after. The engine evaluates proposed actions against a risk taxonomy and permission boundaries, emitting approval requests when thresholds are met.
 
 ## Acceptance Criteria
-- [ ] Actions are classified into three risk levels per PRD § 13: Low, Medium, High
-- [ ] Low-risk actions (answer questions, open apps, search files, read logs) proceed without approval
-- [ ] Medium-risk actions (move files, rename files, edit project files, run guarded commands) trigger a lightweight plan recap
-- [ ] High-risk actions (package installation, sudo, system settings, mass deletion, external sends) require explicit approval
-- [ ] The engine accepts an action description and returns: risk level, approval required (bool), explanation of why approval is needed, list of affected resources
-- [ ] Permission boundaries enforce MVP constraints: approved folder scopes, no unrestricted filesystem access, no autonomous root execution
-- [ ] Approved folder list is configurable
-- [ ] The engine emits `approval_requested` events via IPC when approval is needed
+- [x] Actions are classified into three risk levels per PRD § 13: Low, Medium, High
+- [x] Low-risk actions (answer questions, open apps, search files, read logs) proceed without approval
+- [x] Medium-risk actions (move files, rename files, edit project files, run guarded commands) trigger a lightweight plan recap
+- [x] High-risk actions (package installation, sudo, system settings, mass deletion, external sends) require explicit approval
+- [x] The engine accepts an action description and returns: risk level, approval required (bool), explanation of why approval is needed, list of affected resources
+- [x] Permission boundaries enforce MVP constraints: approved folder scopes, no unrestricted filesystem access, no autonomous root execution
+- [x] Approved folder list is configurable
+- [x] The engine emits `approval_requested` events via IPC when approval is needed
 
 ## Implementation Notes
 - Implement in `crates/policy_engine`
