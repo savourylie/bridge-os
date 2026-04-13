@@ -115,6 +115,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             ipc::start_listening,
             ipc::stop_listening,
+            ipc::submit_transcript_chunk,
+            ipc::interrupt_conversation,
             ipc::approve_action,
             ipc::deny_action,
             ipc::pause_execution,

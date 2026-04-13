@@ -166,21 +166,61 @@ describe("tauri bridge", () => {
     })
   })
 
-  it("invokes the documented command names and hydrates returned snapshots", async () => {
+  it("invokes conversation and execution commands with the documented payloads", async () => {
     const store = createBridgeStore()
     const invoked: string[] = []
+    const payloads: Array<Record<string, unknown> | undefined> = []
 
-    mockIPC((command) => {
+    mockIPC((command, payload) => {
       invoked.push(command)
+      payloads.push(payload)
 
       if (command === TAURI_COMMANDS.startListening) {
         return createSystemState({
           conversation: {
             state: "listening",
-            transcript: "Listening for your request.",
+            transcript: "",
           },
           currentTask: {
             state: "listening",
+            intent: {
+              unresolvedQuestions: [],
+            },
+            plan: {
+              steps: [],
+              planState: "drafting",
+            },
+          },
+        })
+      }
+
+      if (command === TAURI_COMMANDS.submitTranscriptChunk) {
+        return createSystemState({
+          conversation: {
+            state: "holding_for_more",
+            transcript: "wait, not yesterday",
+          },
+          currentTask: {
+            state: "idle",
+            intent: {
+              unresolvedQuestions: [],
+            },
+            plan: {
+              steps: [],
+              planState: "drafting",
+            },
+          },
+        })
+      }
+
+      if (command === TAURI_COMMANDS.interruptConversation) {
+        return createSystemState({
+          conversation: {
+            state: "interrupted",
+            transcript: "BridgeOS speaking summary",
+          },
+          currentTask: {
+            state: "idle",
             intent: {
               unresolvedQuestions: [],
             },
@@ -228,13 +268,31 @@ describe("tauri bridge", () => {
     await tauriBridge.startListening(store)
     expect(store.getState().conversation.state).toBe("listening")
 
+    await tauriBridge.submitTranscriptChunk(
+      { text: "wait, not yesterday", isFinal: false },
+      store,
+    )
+    expect(store.getState().conversation.state).toBe("holding_for_more")
+    expect(store.getState().conversation.transcript).toBe("wait, not yesterday")
+
+    await tauriBridge.interruptConversation(store)
+    expect(store.getState().conversation.state).toBe("interrupted")
+
     await tauriBridge.pauseExecution(store)
     expect(store.getState().execution.state).toBe("paused")
     expect(store.getState().currentTask.state).toBe("paused")
 
     expect(invoked).toEqual([
       TAURI_COMMANDS.startListening,
+      TAURI_COMMANDS.submitTranscriptChunk,
+      TAURI_COMMANDS.interruptConversation,
       TAURI_COMMANDS.pauseExecution,
+    ])
+    expect(payloads).toEqual([
+      {},
+      { chunk: { text: "wait, not yesterday", isFinal: false } },
+      {},
+      {},
     ])
   })
 })

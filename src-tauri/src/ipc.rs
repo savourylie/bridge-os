@@ -1,8 +1,10 @@
+use adapters::TranscriptChunk;
 use tauri::{AppHandle, State};
 use task_models::{
     ApprovalFlow, ApprovalRequest, ApprovalSnapshot, CompletionChanges, CompletionSummary,
-    ConversationSlice, ExecutionProgress, ExecutionState, ExecutionSlice, Intent, Plan, PlanState,
-    PlanStep, RiskLevel, StepState, SystemState, TaskState, TimelineStep,
+    ConversationSlice, ConversationState, ExecutionProgress, ExecutionState, ExecutionSlice,
+    Intent, Plan, PlanState, PlanStep, RiskLevel, StepState, SystemState, TaskState,
+    TimelineStep, TranscriptChunkInput,
 };
 
 use crate::BackendState;
@@ -20,6 +22,8 @@ pub const TASK_COMPLETED: &str = "task_completed";
 enum IpcCommand {
     StartListening,
     StopListening,
+    SubmitTranscriptChunk,
+    InterruptConversation,
     ApproveAction,
     DenyAction,
     PauseExecution,
@@ -192,6 +196,8 @@ fn event_names_for_command(command: IpcCommand) -> &'static [&'static str] {
     match command {
         IpcCommand::StartListening => &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED],
         IpcCommand::StopListening => &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED],
+        IpcCommand::SubmitTranscriptChunk => &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED],
+        IpcCommand::InterruptConversation => &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED],
         IpcCommand::ApproveAction => &[
             INTENT_UPDATED,
             PLAN_UPDATED,
@@ -224,6 +230,7 @@ fn apply_ipc_command(command: IpcCommand, state: &mut SystemState) {
                 state.current_task.state = TaskState::Idle;
             }
         }
+        IpcCommand::SubmitTranscriptChunk | IpcCommand::InterruptConversation => {}
         IpcCommand::ApproveAction => {
             seed_placeholder_task(state);
             state.current_task.state = TaskState::Executing;
@@ -377,9 +384,38 @@ fn sync_conversation_slice(backend_state: &BackendState, state: &mut SystemState
     };
 }
 
+fn sync_placeholder_task_state_for_conversation(state: &mut SystemState) {
+    if state.execution.state != ExecutionState::NotStarted {
+        return;
+    }
+
+    match state.conversation.state {
+        ConversationState::Idle => {
+            if state.current_task.state == TaskState::Listening {
+                state.current_task.state = TaskState::Idle;
+            }
+        }
+        ConversationState::Listening => {
+            if matches!(state.current_task.state, TaskState::Idle | TaskState::Cancelled) {
+                state.current_task.state = TaskState::Listening;
+            }
+        }
+        ConversationState::HoldingForMore
+        | ConversationState::Clarifying
+        | ConversationState::IntentLocked
+        | ConversationState::Speaking
+        | ConversationState::Interrupted => {
+            if state.current_task.state == TaskState::Listening {
+                state.current_task.state = TaskState::Idle;
+            }
+        }
+    }
+}
+
 fn build_system_state(backend_state: &BackendState) -> SystemState {
     let mut state = backend_state.orchestration_runtime.system_state();
     sync_conversation_slice(backend_state, &mut state);
+    sync_placeholder_task_state_for_conversation(&mut state);
 
     if state.execution.progress.is_none() {
         state.execution.progress = derive_execution_progress(&state.timeline);
@@ -424,9 +460,6 @@ pub async fn start_listening(
         .start_listening()
         .await
         .map_err(|error| error.to_string())?;
-    backend_state
-        .conversation_runtime
-        .replace_transcript("Listening for your request.");
 
     let next_state = apply_and_persist(IpcCommand::StartListening, backend_state);
     emit_events(&app, IpcCommand::StartListening, &next_state)?;
@@ -445,12 +478,47 @@ pub async fn stop_listening(
         .stop_listening()
         .await
         .map_err(|error| error.to_string())?;
-    backend_state
-        .conversation_runtime
-        .replace_transcript("Voice capture stopped.");
 
     let next_state = apply_and_persist(IpcCommand::StopListening, backend_state);
     emit_events(&app, IpcCommand::StopListening, &next_state)?;
+
+    Ok(next_state)
+}
+
+#[tauri::command]
+pub fn submit_transcript_chunk(
+    app: AppHandle,
+    state: State<'_, BackendState>,
+    chunk: TranscriptChunkInput,
+) -> Result<SystemState, String> {
+    let backend_state = state.inner();
+    backend_state
+        .conversation_runtime
+        .submit_transcript_chunk(TranscriptChunk {
+            text: chunk.text,
+            is_final: chunk.is_final,
+        })
+        .map_err(|error| error.to_string())?;
+
+    let next_state = apply_and_persist(IpcCommand::SubmitTranscriptChunk, backend_state);
+    emit_events(&app, IpcCommand::SubmitTranscriptChunk, &next_state)?;
+
+    Ok(next_state)
+}
+
+#[tauri::command]
+pub fn interrupt_conversation(
+    app: AppHandle,
+    state: State<'_, BackendState>,
+) -> Result<SystemState, String> {
+    let backend_state = state.inner();
+    backend_state
+        .conversation_runtime
+        .interrupt()
+        .map_err(|error| error.to_string())?;
+
+    let next_state = apply_and_persist(IpcCommand::InterruptConversation, backend_state);
+    emit_events(&app, IpcCommand::InterruptConversation, &next_state)?;
 
     Ok(next_state)
 }
@@ -523,7 +591,7 @@ pub fn get_system_state(state: State<'_, BackendState>) -> SystemState {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use task_models::ConversationState;
+    use futures::executor::block_on;
 
     #[derive(Default)]
     struct MockEmitter {
@@ -619,5 +687,84 @@ mod tests {
             event_names_for_command(IpcCommand::StartListening),
             &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED]
         );
+        assert_eq!(
+            event_names_for_command(IpcCommand::SubmitTranscriptChunk),
+            &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED]
+        );
+        assert_eq!(
+            event_names_for_command(IpcCommand::InterruptConversation),
+            &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED]
+        );
+    }
+
+    #[test]
+    fn conversation_runtime_commands_build_expected_system_state() {
+        let backend_state = BackendState::bootstrap();
+        let emitter = MockEmitter::default();
+
+        block_on(backend_state.conversation_runtime.start_listening())
+            .expect("start listening");
+        let listening_state = apply_and_persist(IpcCommand::StartListening, &backend_state);
+        emit_events(&emitter, IpcCommand::StartListening, &listening_state)
+            .expect("emit listening events");
+        assert_eq!(listening_state.conversation.state, ConversationState::Listening);
+        assert_eq!(listening_state.current_task.state, TaskState::Listening);
+
+        backend_state
+            .conversation_runtime
+            .submit_transcript_chunk(TranscriptChunk {
+                text: "wait, not yesterday".into(),
+                is_final: false,
+            })
+            .expect("submit holding transcript");
+        let holding_state = apply_and_persist(IpcCommand::SubmitTranscriptChunk, &backend_state);
+        assert_eq!(
+            holding_state.conversation.state,
+            ConversationState::HoldingForMore
+        );
+        assert_eq!(holding_state.current_task.state, TaskState::Idle);
+
+        backend_state
+            .conversation_runtime
+            .submit_transcript_chunk(TranscriptChunk {
+                text: "this week".into(),
+                is_final: true,
+            })
+            .expect("submit final transcript");
+        let locked_state = apply_and_persist(IpcCommand::SubmitTranscriptChunk, &backend_state);
+        assert_eq!(locked_state.conversation.state, ConversationState::IntentLocked);
+        assert_eq!(locked_state.conversation.transcript, "this week");
+
+        backend_state
+            .conversation_runtime
+            .start_speaking()
+            .expect("force speaking");
+        backend_state
+            .conversation_runtime
+            .interrupt()
+            .expect("interrupt speaking");
+        let interrupt_state = apply_and_persist(IpcCommand::InterruptConversation, &backend_state);
+        assert_eq!(
+            interrupt_state.conversation.state,
+            ConversationState::Interrupted
+        );
+    }
+
+    #[test]
+    fn interrupt_command_requires_speaking_state() {
+        let backend_state = BackendState::bootstrap();
+        let before = build_system_state(&backend_state);
+
+        let error = backend_state
+            .conversation_runtime
+            .interrupt()
+            .expect_err("interrupt should fail before speaking");
+        assert_eq!(
+            error.to_string(),
+            "Invalid conversation transition: Idle -> Interrupted"
+        );
+
+        let after = build_system_state(&backend_state);
+        assert_eq!(before, after);
     }
 }

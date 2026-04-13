@@ -212,6 +212,14 @@ pub struct TimelineStep {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(rename_all = "camelCase")]
+pub struct TranscriptChunkInput {
+    pub text: String,
+    pub is_final: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
 pub struct ConversationSlice {
     #[serde(default)]
     pub state: ConversationState,
@@ -328,6 +336,7 @@ pub fn ipc_typescript() -> String {
     append_decl::<CompletionSummary>(&mut output, &config);
     append_decl::<ApprovalRequest>(&mut output, &config);
     append_decl::<TimelineStep>(&mut output, &config);
+    append_decl::<TranscriptChunkInput>(&mut output, &config);
     append_decl::<ConversationSlice>(&mut output, &config);
     append_decl::<ExecutionProgress>(&mut output, &config);
     append_decl::<ExecutionSlice>(&mut output, &config);

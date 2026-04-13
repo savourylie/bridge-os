@@ -43,16 +43,31 @@ impl TurnHoldingAnalyzer {
     }
 
     pub fn assess(&self, transcript: &str) -> TurnHoldingAssessment {
-        let normalized = transcript.trim().to_lowercase();
-        if normalized.is_empty() {
+        let collapsed = transcript
+            .trim()
+            .to_lowercase()
+            .chars()
+            .map(|character| {
+                if character.is_alphanumeric() || character.is_whitespace() {
+                    character
+                } else {
+                    ' '
+                }
+            })
+            .collect::<String>()
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ");
+
+        if collapsed.is_empty() {
             return TurnHoldingAssessment::default();
         }
 
         if self.config.self_repair_markers.iter().any(|marker| {
-            normalized == *marker
-                || normalized.starts_with(&format!("{marker} "))
-                || normalized.ends_with(&format!(" {marker}"))
-                || normalized.contains(&format!(" {marker} "))
+            collapsed == *marker
+                || collapsed.starts_with(&format!("{marker} "))
+                || collapsed.ends_with(&format!(" {marker}"))
+                || collapsed.contains(&format!(" {marker} "))
         }) {
             return TurnHoldingAssessment {
                 should_hold: true,
@@ -60,7 +75,7 @@ impl TurnHoldingAnalyzer {
             };
         }
 
-        if normalized.split_whitespace().last().is_some_and(|word| {
+        if collapsed.split_whitespace().last().is_some_and(|word| {
             self.config
                 .trailing_conjunctions
                 .iter()
@@ -73,5 +88,45 @@ impl TurnHoldingAnalyzer {
         }
 
         TurnHoldingAssessment::default()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn detects_self_repair_markers_with_punctuation() {
+        let analyzer = TurnHoldingAnalyzer::default();
+
+        let assessment = analyzer.assess("wait, not yesterday");
+        assert!(assessment.should_hold);
+        assert_eq!(
+            assessment.reason.as_deref(),
+            Some("Detected a self-repair phrase.")
+        );
+    }
+
+    #[test]
+    fn detects_trailing_conjunctions() {
+        let analyzer = TurnHoldingAnalyzer::default();
+
+        let assessment = analyzer.assess("organize the screenshots and");
+        assert!(assessment.should_hold);
+        assert_eq!(
+            assessment.reason.as_deref(),
+            Some("Utterance ends with a trailing conjunction.")
+        );
+    }
+
+    #[test]
+    fn ignores_complete_utterances_and_empty_input() {
+        let analyzer = TurnHoldingAnalyzer::default();
+
+        assert_eq!(
+            analyzer.assess("organize the screenshots from this week"),
+            TurnHoldingAssessment::default()
+        );
+        assert_eq!(analyzer.assess("   "), TurnHoldingAssessment::default());
     }
 }

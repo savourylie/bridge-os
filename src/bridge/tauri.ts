@@ -7,6 +7,7 @@ import {
   type BridgeStoreApi,
   type SystemState,
 } from "@/state"
+import type { TranscriptChunkInput } from "@/state/ipc-types"
 
 interface TauriGlobal {
   isTauri?: boolean
@@ -31,6 +32,8 @@ export type TauriEventChannel = (typeof TAURI_EVENT_CHANNELS)[number]
 export const TAURI_COMMANDS = {
   startListening: "start_listening",
   stopListening: "stop_listening",
+  submitTranscriptChunk: "submit_transcript_chunk",
+  interruptConversation: "interrupt_conversation",
   approveAction: "approve_action",
   denyAction: "deny_action",
   pauseExecution: "pause_execution",
@@ -42,8 +45,12 @@ export const TAURI_COMMANDS = {
 async function invokeAndHydrate(
   command: string,
   store: BridgeStoreApi = bridgeStore,
+  payload?: Record<string, unknown>,
 ): Promise<SystemState> {
-  const systemState = await invoke<SystemState>(command)
+  const systemState =
+    payload === undefined
+      ? await invoke<SystemState>(command)
+      : await invoke<SystemState>(command, payload)
   replaceFromSystemState(systemState, store)
   return systemState
 }
@@ -84,6 +91,15 @@ export function createTauriBridge() {
     },
     stopListening(store: BridgeStoreApi = bridgeStore) {
       return invokeAndHydrate(TAURI_COMMANDS.stopListening, store)
+    },
+    submitTranscriptChunk(
+      chunk: TranscriptChunkInput,
+      store: BridgeStoreApi = bridgeStore,
+    ) {
+      return invokeAndHydrate(TAURI_COMMANDS.submitTranscriptChunk, store, { chunk })
+    },
+    interruptConversation(store: BridgeStoreApi = bridgeStore) {
+      return invokeAndHydrate(TAURI_COMMANDS.interruptConversation, store)
     },
     approveAction(store: BridgeStoreApi = bridgeStore) {
       return invokeAndHydrate(TAURI_COMMANDS.approveAction, store)

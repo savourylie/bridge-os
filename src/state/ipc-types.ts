@@ -31,6 +31,8 @@ export type ApprovalRequest = { action: string, willAffect: Array<string>, willN
 
 export type TimelineStep = { id: string, description: string, impact?: string, status: StepState, };
 
+export type TranscriptChunkInput = { text: string, isFinal: boolean, };
+
 export type ConversationSlice = { state: ConversationState, transcript: string, };
 
 export type ExecutionProgress = { current: number, total: number, };
