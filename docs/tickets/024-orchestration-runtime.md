@@ -1,7 +1,7 @@
 # [TICKET-024] Orchestration Runtime
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #023 ✅
@@ -10,16 +10,16 @@
 Implement the orchestration runtime — the operational core of BridgeOS that handles intent parsing, intent stabilization, plan generation, task state management, tool routing, and execution coordination. This module takes a stabilized user intent, generates an action plan, validates each step against the policy engine, executes steps sequentially through adapters, and emits events for every meaningful state change.
 
 ## Acceptance Criteria
-- [ ] Intent parser extracts structured intent (goal, scope, constraints, exclusions) from transcript text
-- [ ] Intent stabilization logic detects when intent is "stable enough to plan" (no recent changes for a configurable threshold)
-- [ ] Plan generator produces a sequence of steps from a stabilized intent
-- [ ] Each step is validated against the policy engine before execution
-- [ ] Steps requiring approval emit `approval_requested` and pause until approval is granted or denied
-- [ ] Task state machine transitions are driven by execution events
-- [ ] Step execution is delegated to the appropriate adapter (via trait dispatch)
-- [ ] Execution emits `step_updated` and `execution_state_changed` events for every state change
-- [ ] Task completion generates a `task_completed` event with outcome summary (changes made, resources affected)
-- [ ] Audit events are logged for every plan generation, step execution, and state transition
+- [x] Intent parser extracts structured intent (goal, scope, constraints, exclusions) from transcript text
+- [x] Intent stabilization logic detects when intent is "stable enough to plan" (no recent changes for a configurable threshold)
+- [x] Plan generator produces a sequence of steps from a stabilized intent
+- [x] Each step is validated against the policy engine before execution
+- [x] Steps requiring approval emit `approval_requested` and pause until approval is granted or denied
+- [x] Task state machine transitions are driven by execution events
+- [x] Step execution is delegated to the appropriate adapter (via trait dispatch)
+- [x] Execution emits `step_updated` and `execution_state_changed` events for every state change
+- [x] Task completion generates a `task_completed` event with outcome summary (changes made, resources affected)
+- [x] Audit events are logged for every plan generation, step execution, and state transition
 
 ## Implementation Notes
 - Implement in `crates/orchestration_runtime`

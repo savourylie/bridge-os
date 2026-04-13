@@ -4,7 +4,7 @@
 `blocked`
 
 ## Dependencies
-- Requires: #024, #025
+- Requires: #024 ✅, #025
 
 ## Description
 Implement two related MVP task categories: project inspection and guarded developer commands. Project inspection allows users to ask BridgeOS to scan a project directory, summarize its contents, and answer questions. Guarded commands allow a small allowlisted set of local commands to run with visible intent and results. Both categories share the pattern of read-only or low-risk operations with clear output display.

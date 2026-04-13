@@ -7,9 +7,9 @@
 
 | Status        | Count |
 | ------------- | ----- |
-| ✅ Done        | 23    |
+| ✅ Done        | 24    |
 | 🔧 In Progress | 0     |
-| 📋 Pending     | 2     |
+| 📋 Pending     | 1     |
 | 🚫 Blocked     | 11    |
 | ⏸️ Deferred    | 0     |
 
@@ -69,10 +69,10 @@
 
 | #   | Ticket                                                                                     | Status    | Depends On       | Notes |
 | --- | ------------------------------------------------------------------------------------------ | --------- | ---------------- | ----- |
-| 024 | [Orchestration Runtime](./024-orchestration-runtime.md)                                    | `pending` | #023 ✅          | Unblocked — #023 now done |
+| 024 | [Orchestration Runtime](./024-orchestration-runtime.md)                                    | `done`    | #023 ✅          | Orchestration runtime complete |
 | 025 | [Mock Adapter System](./025-mock-adapter-system.md)                                        | `pending` | #023 ✅          | Unblocked — #023 now done |
-| 026 | [Folder Organization Flow](./026-folder-organization-flow.md)                              | `blocked` | #024, #025       |       |
-| 027 | [Project Inspection & Commands](./027-project-inspection-and-commands.md)                   | `blocked` | #024, #025       |       |
+| 026 | [Folder Organization Flow](./026-folder-organization-flow.md)                              | `blocked` | #024 ✅, #025    |       |
+| 027 | [Project Inspection & Commands](./027-project-inspection-and-commands.md)                   | `blocked` | #024 ✅, #025    |       |
 | 028 | [**TEST: Checkpoint 5 — Mock Task Flows**](./028-test-checkpoint-5-mock-flows.md)          | `blocked` | #026, #027       | Gate: Phase 6 |
 
 ## Phase 7 — Voice Pipeline
