@@ -1,10 +1,10 @@
 # [TICKET-029] Speech-to-Text Integration
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #028
+- Requires: #028 ✅
 
 ## Description
 Integrate a speech-to-text (STT) service into BridgeOS to replace mock transcript input with real voice capture. This connects the microphone audio stream to a transcription engine that produces live, incremental transcript text fed into the conversation runtime. The STT integration is what makes BridgeOS voice-native rather than text-native.

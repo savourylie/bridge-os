@@ -1,7 +1,7 @@
 # [TICKET-028] TEST: Checkpoint 5 — Mock Task Flows
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #026 ✅, #027 ✅
@@ -12,19 +12,19 @@ This checkpoint verifies that the two implemented task flows (folder organizatio
 This is a gate for Phase 7 (Voice Pipeline). Once task flows work with simulated input, the voice pipeline will replace text-based input with real speech-to-text.
 
 ## Acceptance Criteria
-- [ ] Folder organization flow completes end-to-end: intent → plan → execute → completion
-- [ ] Folder organization correctly groups files by type into subdirectories
-- [ ] Folder organization respects exclusion constraints (e.g., "do not touch PDFs")
-- [ ] Folder organization undo reverses all file operations
-- [ ] Project inspection flow returns a structured directory summary
-- [ ] Guarded command flow executes allowlisted commands as low-risk
-- [ ] Non-allowlisted commands trigger high-risk approval flow
-- [ ] All flows correctly propagate state through: conversation state, execution state, task state, step states
-- [ ] Policy engine classifications are correct for all tested actions
-- [ ] Timeline shows correct step progression with status dots and impact summaries
-- [ ] CompletionSummary shows accurate outcome data for each flow
-- [ ] Audit log contains a complete trace for each executed flow
-- [ ] No state machine violations during any flow execution
+- [x] Folder organization flow completes end-to-end: intent → plan → execute → completion
+- [x] Folder organization correctly groups files by type into subdirectories
+- [x] Folder organization respects exclusion constraints (e.g., "do not touch PDFs")
+- [x] Folder organization undo reverses all file operations
+- [x] Project inspection flow returns a structured directory summary
+- [x] Guarded command flow executes allowlisted commands as low-risk
+- [x] Non-allowlisted commands trigger high-risk approval flow
+- [x] All flows correctly propagate state through: conversation state, execution state, task state, step states
+- [x] Policy engine classifications are correct for all tested actions
+- [x] Timeline shows correct step progression with status dots and impact summaries
+- [x] CompletionSummary shows accurate outcome data for each flow
+- [x] Audit log contains a complete trace for each executed flow
+- [x] No state machine violations during any flow execution
 
 ## Implementation Notes
 This is a manual test execution ticket — no code changes unless bugs are found during testing.

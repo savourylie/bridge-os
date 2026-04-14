@@ -1,10 +1,10 @@
 # [TICKET-030] Text-to-Speech & Spoken Response
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #028
+- Requires: #028 ✅
 
 ## Description
 Integrate text-to-speech (TTS) into BridgeOS so the system can speak responses naturally. The AI persona should sound calm, competent, brief, and slightly formal — like a reliable ship computer, not a novelty assistant. Spoken responses must be interruptible: when the user starts speaking, TTS playback should stop immediately.
