@@ -358,9 +358,20 @@ pub fn get_system_state(state: State<'_, BackendState>) -> SystemState {
     state.inner().orchestration_runtime.system_state()
 }
 
+#[tauri::command]
+pub fn undo_folder_organization(state: State<'_, BackendState>) -> Result<(), String> {
+    let count = state.adapters.file_system.operations().len();
+    state
+        .adapters
+        .file_system
+        .undo_operations(count)
+        .map_err(|error| error.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use adapters::FileSystemAdapter;
 
     #[derive(Clone, Default)]
     struct MockEmitter {
@@ -524,5 +535,342 @@ mod tests {
             .stabilize_if_due(second.stabilization.expect("second schedule").revision)
             .expect("latest stabilize");
         assert!(latest.state_changed);
+    }
+
+    #[test]
+    fn folder_organization_full_flow_completes_with_correct_counts() {
+        use adapters::ListDirectoryRequest;
+
+        let backend_state = BackendState::bootstrap_with_config(
+            orchestration_runtime::OrchestrationConfig {
+                intent_stability_ms: 0,
+            },
+        );
+        let emitter = MockEmitter::default();
+        block_on(backend_state.conversation_runtime.start_listening()).expect("start listening");
+
+        let observed = submit_transcript_to_runtime(
+            &backend_state,
+            TranscriptChunkInput {
+                text: "Organize my Downloads".into(),
+                is_final: true,
+            },
+        )
+        .expect("submit transcript");
+        let _stabilized = backend_state
+            .orchestration_runtime
+            .stabilize_if_due(observed.stabilization.expect("schedule").revision)
+            .expect("stabilize");
+
+        let approved = backend_state
+            .orchestration_runtime
+            .approve_pending()
+            .expect("approve pending");
+        let token = approved.execution_token.expect("execution token after approval");
+
+        drive_execution_to_idle(&emitter, &backend_state, token).expect("drive execution");
+
+        let state = backend_state.orchestration_runtime.system_state();
+        assert_eq!(state.current_task.state, task_models::TaskState::Completed);
+
+        let completion = state.current_task.completion.expect("completion summary");
+        assert_eq!(completion.changes.moved, 12);
+        assert_eq!(completion.changes.created, 5);
+        assert_eq!(completion.changes.deleted, 0);
+        assert_eq!(completion.rollback_available, Some(true));
+
+        assert!(
+            !backend_state.adapters.file_system.operations().is_empty(),
+            "operations should be recorded"
+        );
+
+        // Confirm no files remain at a subdirectory path in ~/Downloads
+        let downloads_entries = block_on(
+            backend_state.adapters.file_system.list_entries(ListDirectoryRequest {
+                scope: "~/Downloads".into(),
+            }),
+        )
+        .expect("list downloads");
+        assert!(
+            downloads_entries.is_empty(),
+            "all files should have moved out of ~/Downloads"
+        );
+    }
+
+    #[test]
+    fn folder_organization_pdf_exclusion_leaves_pdfs_unmoved() {
+        use mock_adapters::FileSystemOperation;
+
+        let backend_state = BackendState::bootstrap_with_config(
+            orchestration_runtime::OrchestrationConfig {
+                intent_stability_ms: 0,
+            },
+        );
+        let emitter = MockEmitter::default();
+        block_on(backend_state.conversation_runtime.start_listening()).expect("start listening");
+
+        let observed = submit_transcript_to_runtime(
+            &backend_state,
+            TranscriptChunkInput {
+                text: "Organize my Downloads and do not touch PDFs".into(),
+                is_final: true,
+            },
+        )
+        .expect("submit transcript");
+        let _stabilized = backend_state
+            .orchestration_runtime
+            .stabilize_if_due(observed.stabilization.expect("schedule").revision)
+            .expect("stabilize");
+
+        let approved = backend_state
+            .orchestration_runtime
+            .approve_pending()
+            .expect("approve pending");
+        let token = approved.execution_token.expect("execution token after approval");
+
+        drive_execution_to_idle(&emitter, &backend_state, token).expect("drive execution");
+
+        let state = backend_state.orchestration_runtime.system_state();
+        assert_eq!(state.current_task.state, task_models::TaskState::Completed);
+
+        let completion = state.current_task.completion.expect("completion summary");
+        assert_eq!(completion.changes.moved, 11, "PDF should remain unmoved");
+
+        let operations = backend_state.adapters.file_system.operations();
+        let pdf_move = operations.iter().any(|op| {
+            matches!(op, FileSystemOperation::Move { source, .. } if source.contains(".pdf"))
+        });
+        assert!(!pdf_move, "no Move operation should touch a .pdf file");
+    }
+
+    #[test]
+    fn project_inspection_completes_with_file_summary() {
+        let backend_state = BackendState::bootstrap_with_config(
+            orchestration_runtime::OrchestrationConfig {
+                intent_stability_ms: 0,
+            },
+        );
+        let emitter = MockEmitter::default();
+        block_on(backend_state.conversation_runtime.start_listening()).expect("start listening");
+
+        let observed = submit_transcript_to_runtime(
+            &backend_state,
+            TranscriptChunkInput {
+                text: "Inspect my bridge-os project".into(),
+                is_final: true,
+            },
+        )
+        .expect("submit transcript");
+
+        // Project inspection is low-risk (read-only scan) — execution token comes
+        // directly from stabilization without any approval step.
+        let stabilized = backend_state
+            .orchestration_runtime
+            .stabilize_if_due(observed.stabilization.expect("schedule").revision)
+            .expect("stabilize");
+        assert!(
+            stabilized.execution_token.is_some(),
+            "project inspection should execute without approval"
+        );
+        let token = stabilized.execution_token.expect("execution token");
+
+        drive_execution_to_idle(&emitter, &backend_state, token).expect("drive execution");
+
+        let state = backend_state.orchestration_runtime.system_state();
+        assert_eq!(state.current_task.state, task_models::TaskState::Completed);
+
+        let completion = state.current_task.completion.expect("completion summary");
+        // AnalyzeProject counts the 10 files added to the ~/Projects/bridge-os fixture.
+        assert!(
+            completion.outcome.contains("Found"),
+            "completion outcome should describe files found: {}",
+            completion.outcome
+        );
+    }
+
+    #[test]
+    fn guarded_command_allowlisted_requires_approval_then_executes() {
+        let backend_state = BackendState::bootstrap_with_config(
+            orchestration_runtime::OrchestrationConfig {
+                intent_stability_ms: 0,
+            },
+        );
+        let emitter = MockEmitter::default();
+        block_on(backend_state.conversation_runtime.start_listening()).expect("start listening");
+
+        let observed = submit_transcript_to_runtime(
+            &backend_state,
+            TranscriptChunkInput {
+                text: "Run git status in my bridge-os project".into(),
+                is_final: true,
+            },
+        )
+        .expect("submit transcript");
+
+        let stabilized = backend_state
+            .orchestration_runtime
+            .stabilize_if_due(observed.stabilization.expect("schedule").revision)
+            .expect("stabilize");
+
+        // Allowlisted commands are medium-risk — approval is required before execution.
+        assert!(
+            stabilized.execution_token.is_none(),
+            "allowlisted command should pause for approval"
+        );
+        assert_eq!(
+            stabilized.state.approval.state,
+            task_models::ApprovalFlow::Requested,
+        );
+        assert_eq!(
+            stabilized.state.current_task.risk,
+            Some(task_models::RiskLevel::Medium),
+        );
+
+        // Approve and execute.
+        let approved = backend_state
+            .orchestration_runtime
+            .approve_pending()
+            .expect("approve pending");
+        let token = approved.execution_token.expect("execution token after approval");
+
+        drive_execution_to_idle(&emitter, &backend_state, token).expect("drive execution");
+
+        let emitted = emitter
+            .emitted
+            .lock()
+            .expect("mock emitter lock poisoned")
+            .clone();
+        assert!(emitted.contains(&TASK_COMPLETED.to_string()));
+
+        let state = backend_state.orchestration_runtime.system_state();
+        assert_eq!(state.current_task.state, task_models::TaskState::Completed);
+
+        let completion = state.current_task.completion.expect("completion summary");
+        assert!(
+            completion.outcome.contains("git status"),
+            "completion should reference the executed command: {}",
+            completion.outcome
+        );
+    }
+
+    #[test]
+    fn guarded_command_non_allowlisted_requests_high_risk_approval() {
+        let backend_state = BackendState::bootstrap_with_config(
+            orchestration_runtime::OrchestrationConfig {
+                intent_stability_ms: 0,
+            },
+        );
+        block_on(backend_state.conversation_runtime.start_listening()).expect("start listening");
+
+        let observed = submit_transcript_to_runtime(
+            &backend_state,
+            TranscriptChunkInput {
+                text: "Run lsblk in my bridge-os project".into(),
+                is_final: true,
+            },
+        )
+        .expect("submit transcript");
+
+        let stabilized = backend_state
+            .orchestration_runtime
+            .stabilize_if_due(observed.stabilization.expect("schedule").revision)
+            .expect("stabilize");
+
+        // Non-allowlisted commands are high-risk — approval is required.
+        assert!(
+            stabilized.execution_token.is_none(),
+            "non-allowlisted command should not auto-execute"
+        );
+        assert_eq!(
+            stabilized.state.approval.state,
+            task_models::ApprovalFlow::Requested,
+        );
+        assert_eq!(
+            stabilized.state.current_task.risk,
+            Some(task_models::RiskLevel::High),
+        );
+
+        let approval = stabilized
+            .state
+            .approval
+            .request
+            .expect("approval request should be present");
+        assert_eq!(approval.risk_level, task_models::RiskLevel::High);
+        assert!(
+            approval.explanation.contains("outside the guarded allowlist"),
+            "explanation should mention the allowlist: {}",
+            approval.explanation
+        );
+    }
+
+    #[test]
+    fn folder_organization_undo_reverses_all_move_operations() {
+        use adapters::ListDirectoryRequest;
+
+        let backend_state = BackendState::bootstrap_with_config(
+            orchestration_runtime::OrchestrationConfig {
+                intent_stability_ms: 0,
+            },
+        );
+        let emitter = MockEmitter::default();
+        block_on(backend_state.conversation_runtime.start_listening()).expect("start listening");
+
+        let observed = submit_transcript_to_runtime(
+            &backend_state,
+            TranscriptChunkInput {
+                text: "Organize my Downloads".into(),
+                is_final: true,
+            },
+        )
+        .expect("submit transcript");
+        let _stabilized = backend_state
+            .orchestration_runtime
+            .stabilize_if_due(observed.stabilization.expect("schedule").revision)
+            .expect("stabilize");
+
+        let approved = backend_state
+            .orchestration_runtime
+            .approve_pending()
+            .expect("approve pending");
+        let token = approved.execution_token.expect("execution token after approval");
+
+        drive_execution_to_idle(&emitter, &backend_state, token).expect("drive execution");
+
+        let ops_count = backend_state.adapters.file_system.operations().len();
+        assert!(ops_count > 0, "operations should be recorded before undo");
+
+        backend_state
+            .adapters
+            .file_system
+            .undo_operations(ops_count)
+            .expect("undo operations");
+
+        assert!(
+            backend_state.adapters.file_system.operations().is_empty(),
+            "operations log should be empty after undo"
+        );
+
+        let downloads_entries = block_on(
+            backend_state.adapters.file_system.list_entries(ListDirectoryRequest {
+                scope: "~/Downloads".into(),
+            }),
+        )
+        .expect("list downloads after undo");
+        assert_eq!(
+            downloads_entries.len(),
+            12,
+            "all 12 files should be restored to ~/Downloads"
+        );
+
+        let screenshots_entries = block_on(
+            backend_state.adapters.file_system.list_entries(ListDirectoryRequest {
+                scope: "~/Downloads/Screenshots".into(),
+            }),
+        )
+        .expect("list screenshots after undo");
+        assert!(
+            screenshots_entries.is_empty(),
+            "Screenshots subdirectory should be empty after undo"
+        );
     }
 }

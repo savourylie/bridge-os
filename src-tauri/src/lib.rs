@@ -31,6 +31,61 @@ impl MockAdapterBundle {
     fn bootstrap() -> Self {
         let mut directories = HashMap::new();
         directories.insert(
+            "~/Projects/bridge-os".into(),
+            vec![
+                FileEntry {
+                    path: "~/Projects/bridge-os/Cargo.toml".into(),
+                    is_directory: false,
+                    size_bytes: Some(512),
+                },
+                FileEntry {
+                    path: "~/Projects/bridge-os/README.md".into(),
+                    is_directory: false,
+                    size_bytes: Some(2_048),
+                },
+                FileEntry {
+                    path: "~/Projects/bridge-os/src-tauri/src/lib.rs".into(),
+                    is_directory: false,
+                    size_bytes: Some(8_192),
+                },
+                FileEntry {
+                    path: "~/Projects/bridge-os/src-tauri/src/ipc.rs".into(),
+                    is_directory: false,
+                    size_bytes: Some(12_800),
+                },
+                FileEntry {
+                    path: "~/Projects/bridge-os/src/App.tsx".into(),
+                    is_directory: false,
+                    size_bytes: Some(3_200),
+                },
+                FileEntry {
+                    path: "~/Projects/bridge-os/src/pages/Demo.tsx".into(),
+                    is_directory: false,
+                    size_bytes: Some(9_600),
+                },
+                FileEntry {
+                    path: "~/Projects/bridge-os/src/state/store.ts".into(),
+                    is_directory: false,
+                    size_bytes: Some(4_096),
+                },
+                FileEntry {
+                    path: "~/Projects/bridge-os/src/state/machine.ts".into(),
+                    is_directory: false,
+                    size_bytes: Some(5_120),
+                },
+                FileEntry {
+                    path: "~/Projects/bridge-os/package.json".into(),
+                    is_directory: false,
+                    size_bytes: Some(1_024),
+                },
+                FileEntry {
+                    path: "~/Projects/bridge-os/tsconfig.json".into(),
+                    is_directory: false,
+                    size_bytes: Some(768),
+                },
+            ],
+        );
+        directories.insert(
             "~/Downloads".into(),
             vec![
                 FileEntry {
@@ -39,9 +94,59 @@ impl MockAdapterBundle {
                     size_bytes: Some(245_760),
                 },
                 FileEntry {
+                    path: "~/Downloads/bridge-screenshot-02.png".into(),
+                    is_directory: false,
+                    size_bytes: Some(198_344),
+                },
+                FileEntry {
+                    path: "~/Downloads/bridge-screenshot-03.png".into(),
+                    is_directory: false,
+                    size_bytes: Some(310_220),
+                },
+                FileEntry {
+                    path: "~/Downloads/ui-mockup.jpg".into(),
+                    is_directory: false,
+                    size_bytes: Some(512_800),
+                },
+                FileEntry {
                     path: "~/Downloads/notes.txt".into(),
                     is_directory: false,
                     size_bytes: Some(1_024),
+                },
+                FileEntry {
+                    path: "~/Downloads/readme.md".into(),
+                    is_directory: false,
+                    size_bytes: Some(2_048),
+                },
+                FileEntry {
+                    path: "~/Downloads/design-brief.pdf".into(),
+                    is_directory: false,
+                    size_bytes: Some(890_000),
+                },
+                FileEntry {
+                    path: "~/Downloads/project-archive.zip".into(),
+                    is_directory: false,
+                    size_bytes: Some(1_540_000),
+                },
+                FileEntry {
+                    path: "~/Downloads/backup.tar.gz".into(),
+                    is_directory: false,
+                    size_bytes: Some(980_000),
+                },
+                FileEntry {
+                    path: "~/Downloads/config.json".into(),
+                    is_directory: false,
+                    size_bytes: Some(4_096),
+                },
+                FileEntry {
+                    path: "~/Downloads/settings.toml".into(),
+                    is_directory: false,
+                    size_bytes: Some(3_200),
+                },
+                FileEntry {
+                    path: "~/Downloads/installer.dmg".into(),
+                    is_directory: false,
+                    size_bytes: Some(88_000_000),
                 },
             ],
         );
@@ -71,7 +176,7 @@ impl MockAdapterBundle {
                         "git status".into(),
                         adapters::CommandOutput {
                             command: "git status".into(),
-                            working_directory: Some("~/Projects".into()),
+                            working_directory: Some("~/Projects/bridge-os".into()),
                             success: true,
                             stdout: Some(
                                 "On branch main\nnothing to commit, working tree clean".into(),
@@ -84,9 +189,34 @@ impl MockAdapterBundle {
                         "cargo test".into(),
                         adapters::CommandOutput {
                             command: "cargo test".into(),
-                            working_directory: Some("~/Projects".into()),
+                            working_directory: Some("~/Projects/bridge-os".into()),
                             success: true,
                             stdout: Some("test result: ok. 12 passed; 0 failed".into()),
+                            stderr: None,
+                            exit_code: Some(0),
+                        },
+                    ),
+                    (
+                        "git log".into(),
+                        adapters::CommandOutput {
+                            command: "git log".into(),
+                            working_directory: Some("~/Projects/bridge-os".into()),
+                            success: true,
+                            stdout: Some(
+                                "commit 39aef0a6\nAuthor: Calvin Ku\nDate: Mon Apr 14 2026\n\n    feat: implement project inspection flow"
+                                    .into(),
+                            ),
+                            stderr: None,
+                            exit_code: Some(0),
+                        },
+                    ),
+                    (
+                        "git diff".into(),
+                        adapters::CommandOutput {
+                            command: "git diff".into(),
+                            working_directory: Some("~/Projects/bridge-os".into()),
+                            success: true,
+                            stdout: Some(String::new()),
                             stderr: None,
                             exit_code: Some(0),
                         },
@@ -190,6 +320,7 @@ pub fn run() {
             ipc::resume_execution,
             ipc::stop_execution,
             ipc::get_system_state,
+            ipc::undo_folder_organization,
         ])
         .plugin(tauri_plugin_opener::init())
         .run(tauri::generate_context!())

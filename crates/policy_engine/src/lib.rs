@@ -44,8 +44,11 @@ impl Default for PolicyConfig {
                 "cat".into(),
                 "rg".into(),
                 "git status".into(),
+                "git log".into(),
+                "git diff".into(),
                 "npm run".into(),
                 "cargo build".into(),
+                "cargo test".into(),
             ],
         }
     }

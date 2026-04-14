@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 
+import { tauriBridge } from "@/bridge/tauri"
 import { ApprovalCard } from "@/components/ui/approval-card"
 import { Button } from "@/components/ui/button"
 import { CompletionSummary } from "@/components/ui/completion-summary"
@@ -24,6 +25,17 @@ import {
   type OrganizeDownloadsBranch,
 } from "@/demo/organize-downloads"
 import {
+  PROJECT_INSPECTION_FULL_SEQUENCE,
+  getProjectInspectionSequence,
+} from "@/demo/project-inspection"
+import {
+  GUARDED_COMMAND_APPROVAL_INDEX,
+  GUARDED_COMMAND_APPROVE_SEQUENCE,
+  GUARDED_COMMAND_DENY_SEQUENCE,
+  GUARDED_COMMAND_PRE_APPROVAL_SEQUENCE,
+  getGuardedCommandSequence,
+} from "@/demo/guarded-command"
+import {
   bridgeStore,
   createMockEventDispatcher,
   resetBridgeStore,
@@ -35,8 +47,80 @@ import {
   useTimeline,
   type BridgeStoreApi,
 } from "@/state"
+import type { TimedBridgeEvent } from "@/state/events"
 
 type DemoMode = "auto" | "manual"
+type DemoFlowType = "organizeDownloads" | "projectInspection" | "guardedCommand"
+
+const FLOW_LABELS: Record<DemoFlowType, string> = {
+  organizeDownloads: "Organize Downloads",
+  projectInspection: "Inspect Project",
+  guardedCommand: "Run Command",
+}
+
+const FLOW_TAURI_TRANSCRIPTS: Record<DemoFlowType, string> = {
+  organizeDownloads: "Organize my Downloads folder by file type",
+  projectInspection: "Inspect my bridge-os project",
+  guardedCommand: "Run git status in my bridge-os project",
+}
+
+function getFlowPreApprovalSequence(flow: DemoFlowType): TimedBridgeEvent[] {
+  switch (flow) {
+    case "organizeDownloads":
+      return ORGANIZE_DOWNLOADS_PRE_APPROVAL_SEQUENCE
+    case "projectInspection":
+      return PROJECT_INSPECTION_FULL_SEQUENCE
+    case "guardedCommand":
+      return GUARDED_COMMAND_PRE_APPROVAL_SEQUENCE
+  }
+}
+
+function getFlowApprovalIndex(flow: DemoFlowType): number {
+  switch (flow) {
+    case "organizeDownloads":
+      return ORGANIZE_DOWNLOADS_APPROVAL_INDEX
+    case "projectInspection":
+      return Infinity
+    case "guardedCommand":
+      return GUARDED_COMMAND_APPROVAL_INDEX
+  }
+}
+
+function getFlowApproveSequence(flow: DemoFlowType): TimedBridgeEvent[] {
+  switch (flow) {
+    case "organizeDownloads":
+      return ORGANIZE_DOWNLOADS_APPROVE_SEQUENCE
+    case "projectInspection":
+      return []
+    case "guardedCommand":
+      return GUARDED_COMMAND_APPROVE_SEQUENCE
+  }
+}
+
+function getFlowDenySequence(flow: DemoFlowType): TimedBridgeEvent[] {
+  switch (flow) {
+    case "organizeDownloads":
+      return ORGANIZE_DOWNLOADS_DENY_SEQUENCE
+    case "projectInspection":
+      return []
+    case "guardedCommand":
+      return GUARDED_COMMAND_DENY_SEQUENCE
+  }
+}
+
+function getActiveFlowSequence(
+  flow: DemoFlowType,
+  branch: OrganizeDownloadsBranch,
+): TimedBridgeEvent[] {
+  switch (flow) {
+    case "organizeDownloads":
+      return getOrganizeDownloadsSequence(branch)
+    case "projectInspection":
+      return getProjectInspectionSequence()
+    case "guardedCommand":
+      return getGuardedCommandSequence(branch)
+  }
+}
 
 interface DemoPageProps {
   store?: BridgeStoreApi
@@ -85,8 +169,10 @@ export default function DemoPage({
 
   const dispatcherRef = useRef(createMockEventDispatcher(store))
   const panelVisibilityRef = useRef(false)
+  const isTauriMode = tauriBridge.isAvailable()
 
   const [mode, setMode] = useState<DemoMode>("auto")
+  const [selectedFlow, setSelectedFlow] = useState<DemoFlowType>("organizeDownloads")
   const [branch, setBranch] = useState<OrganizeDownloadsBranch>("pending")
   const [manualIndex, setManualIndex] = useState(0)
   const [panelOpen, setPanelOpen] = useState(false)
@@ -102,10 +188,13 @@ export default function DemoPage({
   const voiceAmplitude = getVoiceAmplitude(conversation.state)
   const shouldDisplayPanel =
     Boolean(currentTask.title) || currentTask.state !== "idle"
+
+  const flowApprovalIndex = getFlowApprovalIndex(selectedFlow)
   const awaitingManualDecision =
+    !isTauriMode &&
     mode === "manual" &&
     branch === "pending" &&
-    manualIndex >= ORGANIZE_DOWNLOADS_APPROVAL_INDEX &&
+    manualIndex >= flowApprovalIndex &&
     approval.state === "requested"
 
   const taskHeader: TaskHeaderData = {
@@ -133,6 +222,21 @@ export default function DemoPage({
     panelVisibilityRef.current = shouldDisplayPanel
   }, [shouldDisplayPanel])
 
+  // Subscribe to Tauri backend events so the store stays in sync with runtime state.
+  useEffect(() => {
+    if (!isTauriMode) return
+    let unlisten: VoidFunction | undefined
+    let didCancel = false
+    void (async () => {
+      unlisten = await tauriBridge.subscribe(store)
+      if (didCancel) { unlisten(); return }
+    })()
+    return () => {
+      didCancel = true
+      unlisten?.()
+    }
+  }, [isTauriMode, store])
+
   useEffect(() => {
     const dispatcher = dispatcherRef.current
 
@@ -141,9 +245,22 @@ export default function DemoPage({
     setBranch("pending")
     setManualIndex(0)
 
+    if (isTauriMode) {
+      const transcript = FLOW_TAURI_TRANSCRIPTS[selectedFlow]
+      setLastAction(`Starting ${FLOW_LABELS[selectedFlow]} backend flow — waiting for intent stabilization.`)
+      void (async () => {
+        await tauriBridge.startListening(store)
+        await tauriBridge.submitTranscriptChunk(
+          { text: transcript, isFinal: true },
+          store,
+        )
+      })()
+      return
+    }
+
     if (mode === "auto") {
-      setLastAction("Auto-play running. Waiting for the approval checkpoint.")
-      dispatcher.play(ORGANIZE_DOWNLOADS_PRE_APPROVAL_SEQUENCE)
+      setLastAction(`Auto-play running — ${FLOW_LABELS[selectedFlow]}.`)
+      dispatcher.play(getFlowPreApprovalSequence(selectedFlow))
     } else {
       setLastAction("Manual mode ready. Use Next step to advance the flow.")
     }
@@ -151,7 +268,11 @@ export default function DemoPage({
     return () => {
       dispatcher.cancel()
     }
-  }, [mode, store])
+  }, [isTauriMode, mode, store, selectedFlow])
+
+  function handleUndo() {
+    restartDemo()
+  }
 
   function restartDemo() {
     const dispatcher = dispatcherRef.current
@@ -162,9 +283,28 @@ export default function DemoPage({
     setManualIndex(0)
     panelVisibilityRef.current = false
 
+    if (isTauriMode) {
+      const transcript = FLOW_TAURI_TRANSCRIPTS[selectedFlow]
+      setLastAction(`Restarting ${FLOW_LABELS[selectedFlow]} backend flow.`)
+      void (async () => {
+        if (selectedFlow === "organizeDownloads") {
+          try { await tauriBridge.undoFolderOrganization() } catch { /* no ops to undo */ }
+        }
+        await tauriBridge.stopListening(store)
+        resetBridgeStore(store)
+        await tauriBridge.startListening(store)
+        await tauriBridge.submitTranscriptChunk(
+          { text: transcript, isFinal: true },
+          store,
+        )
+        setLastAction(`${FLOW_LABELS[selectedFlow]} backend flow restarted — waiting for intent stabilization.`)
+      })()
+      return
+    }
+
     if (mode === "auto") {
-      setLastAction("Auto-play restarted from idle.")
-      dispatcher.play(ORGANIZE_DOWNLOADS_PRE_APPROVAL_SEQUENCE)
+      setLastAction(`Auto-play restarted — ${FLOW_LABELS[selectedFlow]}.`)
+      dispatcher.play(getFlowPreApprovalSequence(selectedFlow))
       return
     }
 
@@ -176,7 +316,7 @@ export default function DemoPage({
     nextBranch: OrganizeDownloadsBranch,
   ) {
     const dispatcher = dispatcherRef.current
-    const sequence = getOrganizeDownloadsSequence(nextBranch)
+    const sequence = getActiveFlowSequence(selectedFlow, nextBranch)
 
     dispatcher.cancel()
     resetBridgeStore(store)
@@ -191,7 +331,7 @@ export default function DemoPage({
 
   function handleNextStep() {
     const dispatcher = dispatcherRef.current
-    const sequence = getOrganizeDownloadsSequence(branch)
+    const sequence = getActiveFlowSequence(selectedFlow, branch)
 
     if (awaitingManualDecision || manualIndex >= sequence.length) {
       return
@@ -210,7 +350,7 @@ export default function DemoPage({
 
     const nextIndex = manualIndex - 1
     const nextBranch =
-      nextIndex <= ORGANIZE_DOWNLOADS_APPROVAL_INDEX
+      nextIndex <= flowApprovalIndex
         ? "pending"
         : branch
 
@@ -221,9 +361,16 @@ export default function DemoPage({
   function handleApprove() {
     const dispatcher = dispatcherRef.current
 
+    if (isTauriMode) {
+      setBranch("approved")
+      setLastAction(`Approval granted. Backend is executing the ${FLOW_LABELS[selectedFlow]} task.`)
+      void tauriBridge.approveAction(store)
+      return
+    }
+
     if (mode === "manual") {
-      const sequence = getOrganizeDownloadsSequence("approved")
-      const nextIndex = dispatcher.step(sequence, ORGANIZE_DOWNLOADS_APPROVAL_INDEX)
+      const sequence = getActiveFlowSequence(selectedFlow, "approved")
+      const nextIndex = dispatcher.step(sequence, flowApprovalIndex)
 
       setBranch("approved")
       setManualIndex(nextIndex)
@@ -233,15 +380,22 @@ export default function DemoPage({
 
     setBranch("approved")
     setLastAction("Approval granted. Auto-play resumed.")
-    dispatcher.play(ORGANIZE_DOWNLOADS_APPROVE_SEQUENCE)
+    dispatcher.play(getFlowApproveSequence(selectedFlow))
   }
 
   function handleDeny() {
     const dispatcher = dispatcherRef.current
 
+    if (isTauriMode) {
+      setBranch("denied")
+      setLastAction("Approval denied. Backend task cancelled.")
+      void tauriBridge.denyAction(store)
+      return
+    }
+
     if (mode === "manual") {
-      const sequence = getOrganizeDownloadsSequence("denied")
-      const nextIndex = dispatcher.step(sequence, ORGANIZE_DOWNLOADS_APPROVAL_INDEX)
+      const sequence = getActiveFlowSequence(selectedFlow, "denied")
+      const nextIndex = dispatcher.step(sequence, flowApprovalIndex)
 
       setBranch("denied")
       setManualIndex(nextIndex)
@@ -251,7 +405,7 @@ export default function DemoPage({
 
     setBranch("denied")
     setLastAction("Approval denied. Auto-play is ending on the cancel path.")
-    dispatcher.play(ORGANIZE_DOWNLOADS_DENY_SEQUENCE)
+    dispatcher.play(getFlowDenySequence(selectedFlow))
   }
 
   return (
@@ -298,6 +452,27 @@ export default function DemoPage({
 
         <Panel surface="cool" padding="spacious">
           <div className="flex flex-wrap items-center gap-3">
+            <span className="type-label text-subtle">FLOW</span>
+            {(["organizeDownloads", "projectInspection", "guardedCommand"] as DemoFlowType[]).map(
+              (flow) => (
+                <Button
+                  key={flow}
+                  variant={selectedFlow === flow ? "default" : "outline"}
+                  size="sm"
+                  className={
+                    selectedFlow === flow
+                      ? "cursor-pointer bg-brand text-white hover:bg-brand-hover"
+                      : "cursor-pointer"
+                  }
+                  onClick={() => setSelectedFlow(flow)}
+                >
+                  {FLOW_LABELS[flow]}
+                </Button>
+              ),
+            )}
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-divider pt-3">
             <Button
               variant={mode === "auto" ? "default" : "outline"}
               size="sm"
@@ -319,6 +494,7 @@ export default function DemoPage({
                   : "cursor-pointer"
               }
               onClick={() => setMode("manual")}
+              disabled={isTauriMode}
             >
               Manual mode
             </Button>
@@ -335,7 +511,7 @@ export default function DemoPage({
               size="sm"
               className="cursor-pointer"
               onClick={handlePreviousStep}
-              disabled={mode !== "manual" || manualIndex === 0}
+              disabled={isTauriMode || mode !== "manual" || manualIndex === 0}
             >
               Previous step
             </Button>
@@ -345,9 +521,10 @@ export default function DemoPage({
               className="cursor-pointer"
               onClick={handleNextStep}
               disabled={
+                isTauriMode ||
                 mode !== "manual" ||
                 awaitingManualDecision ||
-                manualIndex >= getOrganizeDownloadsSequence(branch).length
+                manualIndex >= getActiveFlowSequence(selectedFlow, branch).length
               }
             >
               Next step
@@ -358,15 +535,17 @@ export default function DemoPage({
             <div>
               <p className="type-label text-subtle">MODE</p>
               <p className="type-body mt-1 text-body-text">
-                {mode === "auto"
-                  ? "Auto-play pauses at approval and resumes only after user input."
-                  : "Manual mode dispatches one event at a time and supports rewind."}
+                {isTauriMode
+                  ? `Backend mode — ${FLOW_LABELS[selectedFlow]}. The orchestration runtime drives execution end-to-end.`
+                  : mode === "auto"
+                    ? "Auto-play pauses at approval and resumes only after user input."
+                    : "Manual mode dispatches one event at a time and supports rewind."}
               </p>
             </div>
             <div>
               <p className="type-label text-subtle">TRACE</p>
               <p className="type-body mt-1 text-body-text">
-                Branch: {branch} · Manual index: {manualIndex} · Events recorded:{" "}
+                Flow: {FLOW_LABELS[selectedFlow]} · Branch: {branch} · Manual index: {manualIndex} · Events recorded:{" "}
                 {eventHistory.length}
               </p>
             </div>
@@ -418,7 +597,7 @@ export default function DemoPage({
               changes={currentTask.completion.changes}
               rollbackAvailable={currentTask.completion.rollbackAvailable}
               rollbackTimeRemaining={currentTask.completion.rollbackTimeRemaining}
-              onUndo={restartDemo}
+              onUndo={handleUndo}
               onViewChanges={() =>
                 setLastAction(
                   `The event history currently contains ${eventHistory.length} entries.`,

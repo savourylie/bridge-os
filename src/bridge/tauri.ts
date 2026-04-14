@@ -40,6 +40,7 @@ export const TAURI_COMMANDS = {
   resumeExecution: "resume_execution",
   stopExecution: "stop_execution",
   getSystemState: "get_system_state",
+  undoFolderOrganization: "undo_folder_organization",
 } as const
 
 async function invokeAndHydrate(
@@ -115,6 +116,9 @@ export function createTauriBridge() {
     },
     stopExecution(store: BridgeStoreApi = bridgeStore) {
       return invokeAndHydrate(TAURI_COMMANDS.stopExecution, store)
+    },
+    async undoFolderOrganization(): Promise<void> {
+      await invoke<void>(TAURI_COMMANDS.undoFolderOrganization)
     },
   }
 }
