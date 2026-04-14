@@ -17,16 +17,6 @@ const META = {
 }
 
 describe("TaskPanel", () => {
-  const scrollTo = vi.fn()
-
-  beforeEach(() => {
-    scrollTo.mockReset()
-    Object.defineProperty(HTMLElement.prototype, "scrollTo", {
-      configurable: true,
-      value: scrollTo,
-    })
-  })
-
   afterEach(() => {
     vi.restoreAllMocks()
   })
@@ -39,7 +29,6 @@ describe("TaskPanel", () => {
         header={HEADER}
         meta={META}
         autoScrollToBottom
-        autoScrollBehavior="auto"
         autoScrollTrigger={1}
       >
         <div>Initial state</div>
@@ -52,6 +41,14 @@ describe("TaskPanel", () => {
       throw new Error("TaskPanel scroll region was not rendered.")
     }
 
+    // JSDOM has no layout engine so scrollTop is always read as 0.
+    // Mock scrollTop as a settable property so we can verify the assignment.
+    let capturedScrollTop = 0
+    Object.defineProperty(scrollRegion, "scrollTop", {
+      configurable: true,
+      get: () => capturedScrollTop,
+      set: (value: number) => { capturedScrollTop = value },
+    })
     Object.defineProperty(scrollRegion, "scrollHeight", {
       configurable: true,
       value: 640,
@@ -64,16 +61,12 @@ describe("TaskPanel", () => {
         header={HEADER}
         meta={META}
         autoScrollToBottom
-        autoScrollBehavior="auto"
         autoScrollTrigger={2}
       >
         <div>Updated state</div>
       </TaskPanel>,
     )
 
-    expect(scrollTo).toHaveBeenLastCalledWith({
-      top: 640,
-      behavior: "auto",
-    })
+    expect(capturedScrollTop).toBe(640)
   })
 })

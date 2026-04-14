@@ -271,7 +271,29 @@ export default function DemoPage({
   }, [isTauriMode, mode, store, selectedFlow])
 
   function handleUndo() {
-    restartDemo()
+    const dispatcher = dispatcherRef.current
+
+    dispatcher.cancel()
+    resetBridgeStore(store)
+    setBranch("pending")
+    setManualIndex(0)
+    panelVisibilityRef.current = false
+
+    if (isTauriMode) {
+      setLastAction("Undoing — reversing file operations.")
+      void (async () => {
+        if (selectedFlow === "organizeDownloads") {
+          try { await tauriBridge.undoFolderOrganization() } catch { /* no ops to undo */ }
+        }
+        await tauriBridge.stopListening(store)
+        resetBridgeStore(store)
+        await tauriBridge.startListening(store)
+        setLastAction("Undo complete — ready for a new command.")
+      })()
+      return
+    }
+
+    setLastAction("Undo complete — files restored to ~/Downloads.")
   }
 
   function restartDemo() {
@@ -287,9 +309,6 @@ export default function DemoPage({
       const transcript = FLOW_TAURI_TRANSCRIPTS[selectedFlow]
       setLastAction(`Restarting ${FLOW_LABELS[selectedFlow]} backend flow.`)
       void (async () => {
-        if (selectedFlow === "organizeDownloads") {
-          try { await tauriBridge.undoFolderOrganization() } catch { /* no ops to undo */ }
-        }
         await tauriBridge.stopListening(store)
         resetBridgeStore(store)
         await tauriBridge.startListening(store)

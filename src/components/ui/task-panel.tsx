@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useLayoutEffect, useRef } from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { AnimatePresence, motion } from "framer-motion"
 import { X } from "lucide-react"
@@ -209,7 +209,6 @@ function TaskPanel({
   className,
   autoScrollToBottom = false,
   autoScrollTrigger,
-  autoScrollBehavior = "smooth",
 }: TaskPanelProps) {
   const scrollRegionRef = useRef<HTMLDivElement>(null)
 
@@ -227,27 +226,17 @@ function TaskPanel({
     return () => document.removeEventListener("keydown", handleKeyDown)
   }, [isOpen, onClose])
 
-  useEffect(() => {
-    if (!isOpen || !autoScrollToBottom) {
-      return
-    }
-
+  // Snap scroll region to bottom after each content change.
+  // useLayoutEffect fires synchronously after the DOM commit so the scroll position
+  // is applied before the browser paints, preventing a flash of wrong position.
+  // Direct scrollTop assignment is used instead of scrollTo({behavior:"smooth"}) to
+  // avoid smooth-scroll animations conflicting with Framer Motion's slide-in transition.
+  useLayoutEffect(() => {
+    if (!isOpen || !autoScrollToBottom) return
     const scrollRegion = scrollRegionRef.current
-
-    if (scrollRegion === null) {
-      return
-    }
-
-    if (typeof scrollRegion.scrollTo === "function") {
-      scrollRegion.scrollTo({
-        top: scrollRegion.scrollHeight,
-        behavior: autoScrollBehavior,
-      })
-      return
-    }
-
+    if (scrollRegion === null) return
     scrollRegion.scrollTop = scrollRegion.scrollHeight
-  }, [isOpen, autoScrollBehavior, autoScrollToBottom, autoScrollTrigger])
+  }, [isOpen, autoScrollToBottom, autoScrollTrigger])
 
   return (
     <AnimatePresence>
@@ -283,7 +272,7 @@ function TaskPanel({
             </div>
 
             {/* Scrollable children zone */}
-            <div ref={scrollRegionRef} className="flex-1 overflow-y-auto pt-4">
+            <div ref={scrollRegionRef} className="flex-1 min-h-0 overflow-y-auto pt-4">
               {children}
             </div>
           </Panel>
