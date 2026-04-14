@@ -1,7 +1,7 @@
 # [TICKET-030] Text-to-Speech & Spoken Response
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #028 ✅
@@ -10,14 +10,14 @@
 Integrate text-to-speech (TTS) into BridgeOS so the system can speak responses naturally. The AI persona should sound calm, competent, brief, and slightly formal — like a reliable ship computer, not a novelty assistant. Spoken responses must be interruptible: when the user starts speaking, TTS playback should stop immediately.
 
 ## Acceptance Criteria
-- [ ] The system generates spoken audio from text responses
-- [ ] Voice persona sounds calm, competent, and slightly formal (not overly friendly or theatrical)
-- [ ] Responses are short and natural (per UX_DESIGN.md § Writing Style Rules)
-- [ ] TTS output plays through the system audio device
-- [ ] TTS is interruptible: if the user starts speaking (barge-in), TTS stops immediately
-- [ ] Conversation state transitions to `speaking` during TTS playback and to `interrupted` if barge-in occurs
-- [ ] TTS does not block execution — the system can continue processing while speaking
-- [ ] Response scheduling: TTS waits for appropriate moments (not mid-user-utterance)
+- [x] The system generates spoken audio from text responses
+- [x] Voice persona sounds calm, competent, and slightly formal (not overly friendly or theatrical)
+- [x] Responses are short and natural (per UX_DESIGN.md § Writing Style Rules)
+- [x] TTS output plays through the system audio device
+- [x] TTS is interruptible: if the user starts speaking (barge-in), TTS stops immediately
+- [x] Conversation state transitions to `speaking` during TTS playback and to `interrupted` if barge-in occurs
+- [x] TTS does not block execution — the system can continue processing while speaking
+- [x] Response scheduling: TTS waits for appropriate moments (not mid-user-utterance)
 
 ## Implementation Notes
 - TTS service options (choose one):

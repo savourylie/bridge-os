@@ -1,10 +1,10 @@
 # [TICKET-031] Turn-Taking, Barge-In & Interruption
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #029 ✅, #030
+- Requires: #029 ✅, #030 ✅
 
 ## Description
 Implement the full turn-taking and interruption system that makes BridgeOS feel like a natural conversational partner rather than a command-and-response interface. This ticket brings together STT and TTS with the conversation runtime's turn-holding logic, creating the full-duplex voice interaction described in the PRD. Users must be able to self-correct, trail off, interrupt the AI, and continue talking while the system works.
