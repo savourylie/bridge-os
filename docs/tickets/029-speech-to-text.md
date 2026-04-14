@@ -1,7 +1,7 @@
 # [TICKET-029] Speech-to-Text Integration
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #028 ✅
@@ -10,14 +10,14 @@
 Integrate a speech-to-text (STT) service into BridgeOS to replace mock transcript input with real voice capture. This connects the microphone audio stream to a transcription engine that produces live, incremental transcript text fed into the conversation runtime. The STT integration is what makes BridgeOS voice-native rather than text-native.
 
 ## Acceptance Criteria
-- [ ] Microphone audio is captured when the system enters `listening` state
-- [ ] Audio is streamed to an STT service/engine for real-time transcription
-- [ ] Transcript text appears incrementally in the VoiceBar (word-by-word or phrase-by-phrase)
-- [ ] Transcription latency is perceptibly low — text appears within ~200-500ms of speech
-- [ ] The system correctly handles silence (no phantom transcriptions during pauses)
-- [ ] Microphone capture stops when the system leaves `listening` or enters `muted` state
-- [ ] The STT adapter implements the `VoiceAdapter` trait interface from `crates/adapters`
-- [ ] Audio permission is requested gracefully on first use
+- [x] Microphone audio is captured when the system enters `listening` state
+- [x] Audio is streamed to an STT service/engine for real-time transcription
+- [x] Transcript text appears incrementally in the VoiceBar (word-by-word or phrase-by-phrase)
+- [x] Transcription latency is perceptibly low — text appears within ~200-500ms of speech
+- [x] The system correctly handles silence (no phantom transcriptions during pauses)
+- [x] Microphone capture stops when the system leaves `listening` or enters `muted` state
+- [x] The STT adapter implements the `VoiceAdapter` trait interface from `crates/adapters`
+- [x] Audio permission is requested gracefully on first use
 
 ## Implementation Notes
 - STT service options (choose one based on quality and latency):
