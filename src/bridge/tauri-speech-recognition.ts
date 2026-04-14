@@ -1,5 +1,10 @@
 import { useEffect, useRef } from "react"
 
+import {
+  cancelActiveSpeech,
+  getActiveSpeechText,
+  isSpeechSynthesisEcho,
+} from "@/bridge/tauri-speech-controller"
 import { tauriBridge } from "@/bridge/tauri"
 import { bridgeStore, type BridgeStoreApi } from "@/state"
 import type {
@@ -12,6 +17,8 @@ const ACTIVE_LISTENING_STATES = new Set<ConversationState>([
   "listening",
   "holding_for_more",
   "clarifying",
+  "speaking",
+  "interrupted",
 ])
 
 type StopReason = "inactive" | "muted" | "cleanup" | "fatal" | null
@@ -111,10 +118,12 @@ export function useTauriSpeechRecognition({
   const shouldRestartRef = useRef(false)
   const fatalRef = useRef(false)
   const lastSubmittedKeyRef = useRef("")
+  const conversationRef = useRef(conversation)
   const storeRef = useRef(store)
   const onStatusChangeRef = useRef(onStatusChange)
   const submissionQueueRef = useRef<Promise<unknown>>(Promise.resolve())
 
+  conversationRef.current = conversation
   storeRef.current = store
   onStatusChangeRef.current = onStatusChange
 
@@ -124,6 +133,13 @@ export function useTauriSpeechRecognition({
 
   function enqueueTranscriptChunk(chunk: TranscriptChunkInput) {
     submissionQueueRef.current = submissionQueueRef.current
+      .then(() => tauriBridge.submitTranscriptChunk(chunk, storeRef.current))
+      .catch(() => undefined)
+  }
+
+  function enqueueBargeInTranscriptChunk(chunk: TranscriptChunkInput) {
+    submissionQueueRef.current = submissionQueueRef.current
+      .then(() => tauriBridge.interruptConversation(storeRef.current))
       .then(() => tauriBridge.submitTranscriptChunk(chunk, storeRef.current))
       .catch(() => undefined)
   }
@@ -192,6 +208,8 @@ export function useTauriSpeechRecognition({
     recognition.lang = "en-US"
 
     recognition.onresult = (event) => {
+      const currentConversation = conversationRef.current
+
       for (let index = event.resultIndex; index < event.results.length; index += 1) {
         const result = event.results[index]
         const text = result?.[0]?.transcript.trim()
@@ -202,6 +220,24 @@ export function useTauriSpeechRecognition({
 
         const submissionKey = `${result.isFinal ? "final" : "live"}:${text}`
         if (submissionKey === lastSubmittedKeyRef.current) {
+          continue
+        }
+
+        if (currentConversation.state === "speaking") {
+          const activeSpeechText = getActiveSpeechText()
+          if (
+            activeSpeechText &&
+            isSpeechSynthesisEcho(text, activeSpeechText)
+          ) {
+            continue
+          }
+
+          lastSubmittedKeyRef.current = submissionKey
+          cancelActiveSpeech("barge-in")
+          enqueueBargeInTranscriptChunk({
+            text,
+            isFinal: result.isFinal,
+          })
           continue
         }
 

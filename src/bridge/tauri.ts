@@ -32,6 +32,8 @@ export type TauriEventChannel = (typeof TAURI_EVENT_CHANNELS)[number]
 export const TAURI_COMMANDS = {
   startListening: "start_listening",
   stopListening: "stop_listening",
+  startSpeaking: "start_speaking",
+  finishSpeaking: "finish_speaking",
   submitTranscriptChunk: "submit_transcript_chunk",
   setMicrophoneMuted: "set_microphone_muted",
   interruptConversation: "interrupt_conversation",
@@ -93,6 +95,12 @@ export function createTauriBridge() {
     },
     stopListening(store: BridgeStoreApi = bridgeStore) {
       return invokeAndHydrate(TAURI_COMMANDS.stopListening, store)
+    },
+    startSpeaking(store: BridgeStoreApi = bridgeStore) {
+      return invokeAndHydrate(TAURI_COMMANDS.startSpeaking, store)
+    },
+    finishSpeaking(store: BridgeStoreApi = bridgeStore) {
+      return invokeAndHydrate(TAURI_COMMANDS.finishSpeaking, store)
     },
     submitTranscriptChunk(
       chunk: TranscriptChunkInput,

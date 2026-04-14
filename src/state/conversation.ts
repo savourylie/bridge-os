@@ -51,6 +51,7 @@ const transitions = {
     RESET: "idle",
   },
   speaking: {
+    START_LISTENING: "listening",
     INTERRUPT: "interrupted",
     RESET: "idle",
   },

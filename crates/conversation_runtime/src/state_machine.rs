@@ -35,7 +35,10 @@ pub fn can_transition(from: ConversationState, to: ConversationState) -> bool {
             ConversationState::Listening | ConversationState::Speaking | ConversationState::Idle
         ),
         ConversationState::Speaking => {
-            matches!(to, ConversationState::Interrupted | ConversationState::Idle)
+            matches!(
+                to,
+                ConversationState::Listening | ConversationState::Interrupted | ConversationState::Idle
+            )
         }
         ConversationState::Interrupted => matches!(
             to,
@@ -95,7 +98,12 @@ mod tests {
                     | ConversationState::Idle
             ),
             ConversationState::Speaking => {
-                matches!(to, ConversationState::Interrupted | ConversationState::Idle)
+                matches!(
+                    to,
+                    ConversationState::Listening
+                        | ConversationState::Interrupted
+                        | ConversationState::Idle
+                )
             }
             ConversationState::Interrupted => matches!(
                 to,

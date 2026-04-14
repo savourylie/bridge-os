@@ -5,6 +5,10 @@ import { clearMocks, mockIPC, mockWindows } from "@tauri-apps/api/mocks"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
+  resetSpeechSynthesisController,
+  setActiveSpeechSession,
+} from "../src/bridge/tauri-speech-controller"
+import {
   getSpeechRecognitionConstructor,
   useTauriSpeechRecognition,
 } from "../src/bridge/tauri-speech-recognition"
@@ -138,6 +142,7 @@ describe("useTauriSpeechRecognition", () => {
   afterEach(() => {
     cleanup()
     clearMocks()
+    resetSpeechSynthesisController()
     Reflect.deleteProperty(globalThis, "SpeechRecognition")
     Reflect.deleteProperty(globalThis, "webkitSpeechRecognition")
   })
@@ -246,6 +251,158 @@ describe("useTauriSpeechRecognition", () => {
       expect(payloads).toEqual([
         { chunk: { text: "Computer organize", isFinal: false } },
         { chunk: { text: "Computer organize", isFinal: true } },
+      ])
+    })
+  })
+
+  it("keeps recognition active while the system is speaking", async () => {
+    const store = createBridgeStore()
+    setConversationState(store, {
+      state: "speaking",
+      transcript: "I have a plan ready.",
+      muted: false,
+    })
+
+    mockIPC((command) => {
+      if (command === TAURI_COMMANDS.stopListening) {
+        return createSystemState()
+      }
+
+      throw new Error(`Unexpected command: ${command}`)
+    })
+
+    render(<Harness store={store} />)
+
+    await waitFor(() => {
+      expect(FakeSpeechRecognition.instances).toHaveLength(1)
+      expect(FakeSpeechRecognition.instances[0]?.start).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it("ignores speech-recognition echo while the system is speaking", async () => {
+    const store = createBridgeStore()
+    const payloads: Array<Record<string, unknown> | undefined> = []
+    setConversationState(store, {
+      state: "speaking",
+      transcript: "I have a plan ready.",
+      muted: false,
+    })
+
+    setActiveSpeechSession("I have a plan ready.", vi.fn())
+
+    mockIPC((command, payload) => {
+      payloads.push(payload)
+
+      if (command === TAURI_COMMANDS.stopListening) {
+        return createSystemState()
+      }
+
+      throw new Error(`Unexpected command: ${command}`)
+    })
+
+    render(<Harness store={store} />)
+
+    await waitFor(() => {
+      expect(FakeSpeechRecognition.instances[0]?.start).toHaveBeenCalledTimes(1)
+    })
+
+    act(() => {
+      FakeSpeechRecognition.instances[0]?.emitResults([
+        { text: "I have a plan", isFinal: false },
+      ])
+    })
+
+    await waitFor(() => {
+      expect(payloads).toEqual([])
+    })
+  })
+
+  it("cancels TTS, interrupts the conversation, and forwards barge-in speech", async () => {
+    const store = createBridgeStore()
+    const invoked: string[] = []
+    const payloads: Array<Record<string, unknown> | undefined> = []
+    const cancelSpeechSpy = vi.fn()
+    setConversationState(store, {
+      state: "speaking",
+      transcript: "I have a plan ready.",
+      muted: false,
+    })
+
+    setActiveSpeechSession("I have a plan ready.", cancelSpeechSpy)
+
+    mockIPC((command, payload) => {
+      invoked.push(command)
+      payloads.push(payload)
+
+      if (command === TAURI_COMMANDS.interruptConversation) {
+        return createSystemState({
+          conversation: {
+            state: "interrupted",
+            transcript: "I have a plan ready.",
+            muted: false,
+          },
+          currentTask: {
+            state: "understanding",
+            intent: {
+              unresolvedQuestions: [],
+            },
+            plan: {
+              steps: [],
+              planState: "drafting",
+            },
+          },
+        })
+      }
+
+      if (command === TAURI_COMMANDS.submitTranscriptChunk) {
+        const chunk = payload?.chunk as { text: string, isFinal: boolean }
+        return createSystemState({
+          conversation: {
+            state: "listening",
+            transcript: chunk.text,
+            muted: false,
+          },
+          currentTask: {
+            state: "understanding",
+            intent: {
+              unresolvedQuestions: [],
+            },
+            plan: {
+              steps: [],
+              planState: "drafting",
+            },
+          },
+        })
+      }
+
+      if (command === TAURI_COMMANDS.stopListening) {
+        return createSystemState()
+      }
+
+      throw new Error(`Unexpected command: ${command}`)
+    })
+
+    render(<Harness store={store} />)
+
+    await waitFor(() => {
+      expect(FakeSpeechRecognition.instances[0]?.start).toHaveBeenCalledTimes(1)
+    })
+
+    act(() => {
+      FakeSpeechRecognition.instances[0]?.emitResults([
+        { text: "stop not that folder", isFinal: true },
+      ])
+    })
+
+    await waitFor(() => {
+      expect(cancelSpeechSpy).toHaveBeenCalledWith("barge-in")
+      expect(invoked).toEqual([
+        TAURI_COMMANDS.interruptConversation,
+        TAURI_COMMANDS.submitTranscriptChunk,
+      ])
+      expect(payloads).toEqual([
+        {},
+        { chunk: { text: "stop not that folder", isFinal: true } },
       ])
     })
   })

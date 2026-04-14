@@ -35,6 +35,12 @@ describe("conversationStateMachine", () => {
     expect(machine.currentState).toBe("interrupted")
   })
 
+  it("allows speaking to transition back to listening when TTS finishes", () => {
+    expect(
+      conversationStateMachine.transition("speaking", { type: "START_LISTENING" }),
+    ).toBe("listening")
+  })
+
   it("throws on invalid conversation transitions", () => {
     expect(() =>
       conversationStateMachine.transition("idle", { type: "INTERRUPT" }),

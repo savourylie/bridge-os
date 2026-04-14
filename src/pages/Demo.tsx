@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 
+import { useTauriSpeechSynthesis } from "@/bridge/tauri-speech-synthesis"
 import { useTauriSpeechRecognition } from "@/bridge/tauri-speech-recognition"
 import { tauriBridge } from "@/bridge/tauri"
 import { ApprovalCard } from "@/components/ui/approval-card"
@@ -183,6 +184,15 @@ export default function DemoPage({
   useTauriSpeechRecognition({
     enabled: isTauriMode,
     conversation,
+    onStatusChange: setLastAction,
+    store,
+  })
+  useTauriSpeechSynthesis({
+    approval,
+    conversation,
+    currentTask,
+    enabled: isTauriMode,
+    execution,
     onStatusChange: setLastAction,
     store,
   })

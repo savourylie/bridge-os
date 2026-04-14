@@ -197,6 +197,46 @@ describe("tauri bridge", () => {
         })
       }
 
+      if (command === TAURI_COMMANDS.startSpeaking) {
+        return createSystemState({
+          conversation: {
+            state: "speaking",
+            transcript: "I have a plan ready.",
+            muted: false,
+          },
+          currentTask: {
+            state: "understanding",
+            intent: {
+              unresolvedQuestions: [],
+            },
+            plan: {
+              steps: [],
+              planState: "drafting",
+            },
+          },
+        })
+      }
+
+      if (command === TAURI_COMMANDS.finishSpeaking) {
+        return createSystemState({
+          conversation: {
+            state: "listening",
+            transcript: "I have a plan ready.",
+            muted: false,
+          },
+          currentTask: {
+            state: "understanding",
+            intent: {
+              unresolvedQuestions: [],
+            },
+            plan: {
+              steps: [],
+              planState: "drafting",
+            },
+          },
+        })
+      }
+
       if (command === TAURI_COMMANDS.submitTranscriptChunk) {
         return createSystemState({
           conversation: {
@@ -293,6 +333,12 @@ describe("tauri bridge", () => {
     await tauriBridge.startListening(store)
     expect(store.getState().conversation.state).toBe("listening")
 
+    await tauriBridge.startSpeaking(store)
+    expect(store.getState().conversation.state).toBe("speaking")
+
+    await tauriBridge.finishSpeaking(store)
+    expect(store.getState().conversation.state).toBe("listening")
+
     await tauriBridge.submitTranscriptChunk(
       { text: "wait, not yesterday", isFinal: false },
       store,
@@ -312,12 +358,16 @@ describe("tauri bridge", () => {
 
     expect(invoked).toEqual([
       TAURI_COMMANDS.startListening,
+      TAURI_COMMANDS.startSpeaking,
+      TAURI_COMMANDS.finishSpeaking,
       TAURI_COMMANDS.submitTranscriptChunk,
       TAURI_COMMANDS.interruptConversation,
       TAURI_COMMANDS.setMicrophoneMuted,
       TAURI_COMMANDS.pauseExecution,
     ])
     expect(payloads).toEqual([
+      {},
+      {},
       {},
       { chunk: { text: "wait, not yesterday", isFinal: false } },
       {},

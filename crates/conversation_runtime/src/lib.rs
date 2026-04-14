@@ -198,6 +198,10 @@ impl ConversationRuntime {
         self.transition_to(ConversationState::Speaking)
     }
 
+    pub fn finish_speaking(&self) -> ConversationRuntimeResult<ConversationState> {
+        self.transition_to(ConversationState::Listening)
+    }
+
     pub fn interrupt(&self) -> ConversationRuntimeResult<ConversationState> {
         self.transition_to(ConversationState::Interrupted)
     }
@@ -425,6 +429,14 @@ mod tests {
         );
         assert_eq!(
             runtime.start_speaking().expect("start speaking"),
+            ConversationState::Speaking
+        );
+        assert_eq!(
+            runtime.finish_speaking().expect("finish speaking"),
+            ConversationState::Listening
+        );
+        assert_eq!(
+            runtime.start_speaking().expect("start speaking again"),
             ConversationState::Speaking
         );
         assert_eq!(

@@ -234,6 +234,44 @@ pub async fn stop_listening(
 }
 
 #[tauri::command]
+pub fn start_speaking(
+    app: AppHandle,
+    state: State<'_, BackendState>,
+) -> Result<SystemState, String> {
+    let backend_state = state.inner().clone();
+    backend_state
+        .conversation_runtime
+        .start_speaking()
+        .map_err(|error| error.to_string())?;
+
+    let outcome = backend_state
+        .orchestration_runtime
+        .sync_conversation(current_conversation_slice(&backend_state));
+    emit_channels(&app, &transcript_channels(), &outcome.state)?;
+
+    Ok(outcome.state)
+}
+
+#[tauri::command]
+pub fn finish_speaking(
+    app: AppHandle,
+    state: State<'_, BackendState>,
+) -> Result<SystemState, String> {
+    let backend_state = state.inner().clone();
+    backend_state
+        .conversation_runtime
+        .finish_speaking()
+        .map_err(|error| error.to_string())?;
+
+    let outcome = backend_state
+        .orchestration_runtime
+        .sync_conversation(current_conversation_slice(&backend_state));
+    emit_channels(&app, &transcript_channels(), &outcome.state)?;
+
+    Ok(outcome.state)
+}
+
+#[tauri::command]
 pub fn submit_transcript_chunk(
     app: AppHandle,
     state: State<'_, BackendState>,
@@ -447,6 +485,40 @@ mod tests {
 
         assert!(synced.state.conversation.muted);
         assert!(backend_state.conversation_runtime.muted());
+    }
+
+    #[test]
+    fn start_and_finish_speaking_sync_the_conversation_slice() {
+        let backend_state = BackendState::bootstrap_with_config(
+            orchestration_runtime::OrchestrationConfig {
+                intent_stability_ms: 0,
+            },
+        );
+        block_on(backend_state.conversation_runtime.start_listening()).expect("start listening");
+
+        backend_state
+            .conversation_runtime
+            .start_speaking()
+            .expect("start speaking");
+        let speaking = backend_state
+            .orchestration_runtime
+            .sync_conversation(current_conversation_slice(&backend_state));
+        assert_eq!(
+            speaking.state.conversation.state,
+            task_models::ConversationState::Speaking
+        );
+
+        backend_state
+            .conversation_runtime
+            .finish_speaking()
+            .expect("finish speaking");
+        let listening = backend_state
+            .orchestration_runtime
+            .sync_conversation(current_conversation_slice(&backend_state));
+        assert_eq!(
+            listening.state.conversation.state,
+            task_models::ConversationState::Listening
+        );
     }
 
     #[test]
