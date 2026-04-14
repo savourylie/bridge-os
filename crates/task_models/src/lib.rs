@@ -227,6 +227,8 @@ pub struct ConversationSlice {
     pub state: ConversationState,
     #[serde(default)]
     pub transcript: String,
+    #[serde(default)]
+    pub muted: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
@@ -361,6 +363,7 @@ mod tests {
             conversation: ConversationSlice {
                 state: ConversationState::Listening,
                 transcript: "Computer, organize Downloads".into(),
+                muted: false,
             },
             execution: ExecutionSlice {
                 state: ExecutionState::WaitingConfirmation,
@@ -429,6 +432,7 @@ mod tests {
         let state = SystemState::default();
 
         assert_eq!(state.conversation.state, ConversationState::Idle);
+        assert!(!state.conversation.muted);
         assert_eq!(state.execution.state, ExecutionState::NotStarted);
         assert_eq!(state.current_task.state, TaskState::Idle);
         assert_eq!(state.current_task.plan.plan_state, PlanState::Drafting);

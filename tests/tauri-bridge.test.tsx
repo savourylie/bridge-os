@@ -18,6 +18,7 @@ function createSystemState(overrides: Partial<SystemState> = {}): SystemState {
     conversation: {
       state: "idle",
       transcript: "",
+      muted: false,
     },
     execution: {
       state: "not_started",
@@ -57,6 +58,7 @@ describe("tauri bridge", () => {
       conversation: {
         state: "listening",
         transcript: "Listening for your request.",
+        muted: false,
       },
       currentTask: {
         id: "task-020-placeholder",
@@ -180,6 +182,7 @@ describe("tauri bridge", () => {
           conversation: {
             state: "listening",
             transcript: "",
+            muted: false,
           },
           currentTask: {
             state: "listening",
@@ -199,6 +202,7 @@ describe("tauri bridge", () => {
           conversation: {
             state: "holding_for_more",
             transcript: "wait, not yesterday",
+            muted: false,
           },
           currentTask: {
             state: "idle",
@@ -218,6 +222,27 @@ describe("tauri bridge", () => {
           conversation: {
             state: "interrupted",
             transcript: "BridgeOS speaking summary",
+            muted: false,
+          },
+          currentTask: {
+            state: "idle",
+            intent: {
+              unresolvedQuestions: [],
+            },
+            plan: {
+              steps: [],
+              planState: "drafting",
+            },
+          },
+        })
+      }
+
+      if (command === TAURI_COMMANDS.setMicrophoneMuted) {
+        return createSystemState({
+          conversation: {
+            state: "interrupted",
+            transcript: "BridgeOS speaking summary",
+            muted: true,
           },
           currentTask: {
             state: "idle",
@@ -278,6 +303,9 @@ describe("tauri bridge", () => {
     await tauriBridge.interruptConversation(store)
     expect(store.getState().conversation.state).toBe("interrupted")
 
+    await tauriBridge.setMicrophoneMuted(true, store)
+    expect(store.getState().conversation.muted).toBe(true)
+
     await tauriBridge.pauseExecution(store)
     expect(store.getState().execution.state).toBe("paused")
     expect(store.getState().currentTask.state).toBe("paused")
@@ -286,12 +314,14 @@ describe("tauri bridge", () => {
       TAURI_COMMANDS.startListening,
       TAURI_COMMANDS.submitTranscriptChunk,
       TAURI_COMMANDS.interruptConversation,
+      TAURI_COMMANDS.setMicrophoneMuted,
       TAURI_COMMANDS.pauseExecution,
     ])
     expect(payloads).toEqual([
       {},
       { chunk: { text: "wait, not yesterday", isFinal: false } },
       {},
+      { muted: true },
       {},
     ])
   })

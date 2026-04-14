@@ -1107,6 +1107,7 @@ mod tests {
         ConversationSlice {
             state: task_models::ConversationState::IntentLocked,
             transcript: transcript.into(),
+            muted: false,
         }
     }
 
@@ -1124,6 +1125,7 @@ mod tests {
         runtime.start_session(ConversationSlice {
             state: task_models::ConversationState::Listening,
             transcript: String::new(),
+            muted: false,
         });
 
         let outcome = runtime.observe_transcript(conversation("Organize my Downloads"));
@@ -1137,6 +1139,7 @@ mod tests {
         runtime.start_session(ConversationSlice {
             state: task_models::ConversationState::Listening,
             transcript: String::new(),
+            muted: false,
         });
         let observed = runtime.observe_transcript(conversation("run git status"));
         let stabilized = runtime
@@ -1159,6 +1162,7 @@ mod tests {
         runtime.start_session(ConversationSlice {
             state: task_models::ConversationState::Listening,
             transcript: String::new(),
+            muted: false,
         });
         let observed =
             runtime.observe_transcript(conversation("Organize my Downloads and do not touch PDFs."));
@@ -1178,6 +1182,7 @@ mod tests {
         runtime.start_session(ConversationSlice {
             state: task_models::ConversationState::Listening,
             transcript: String::new(),
+            muted: false,
         });
         let observed =
             runtime.observe_transcript(conversation("Organize my Downloads and do not touch PDFs."));
@@ -1214,6 +1219,7 @@ mod tests {
         runtime.start_session(ConversationSlice {
             state: task_models::ConversationState::Listening,
             transcript: String::new(),
+            muted: false,
         });
         let observed = runtime.observe_transcript(conversation("Inspect my memfuse project"));
         let stabilized = runtime
@@ -1244,6 +1250,7 @@ mod tests {
         runtime.start_session(ConversationSlice {
             state: task_models::ConversationState::Listening,
             transcript: String::new(),
+            muted: false,
         });
         let observed =
             runtime.observe_transcript(conversation("Run git status in my project"));
@@ -1274,6 +1281,7 @@ mod tests {
         runtime.start_session(ConversationSlice {
             state: task_models::ConversationState::Listening,
             transcript: String::new(),
+            muted: false,
         });
         let observed =
             runtime.observe_transcript(conversation("Install ffmpeg for this project"));
@@ -1293,6 +1301,7 @@ mod tests {
         runtime.start_session(ConversationSlice {
             state: task_models::ConversationState::Listening,
             transcript: String::new(),
+            muted: false,
         });
         let observed =
             runtime.observe_transcript(conversation("Install ffmpeg for this project"));

@@ -5,12 +5,12 @@ use std::sync::Arc;
 
 use adapters::{ActiveWindowInfo, FileEntry};
 use audit_log::{AuditSink, InMemoryAuditLog};
+use browser_voice_adapter::BrowserVoiceAdapter;
 use conversation_runtime::ConversationRuntime;
 use mock_adapters::{
     MockCommandAdapter, MockCommandConfig, MockDesktopAdapter, MockDesktopConfig,
     MockFileSystemAdapter, MockFileSystemConfig, MockPackageManagerAdapter,
-    MockPackageManagerConfig, MockPrivilegeAdapter, MockPrivilegeConfig, MockVoiceAdapter,
-    MockVoiceConfig,
+    MockPackageManagerConfig, MockPrivilegeAdapter, MockPrivilegeConfig,
 };
 use orchestration_runtime::{
     OrchestrationConfig, OrchestrationRuntime, RuntimeAdapters, RuntimeDependencies,
@@ -18,16 +18,16 @@ use orchestration_runtime::{
 use policy_engine::{PolicyConfig, PolicyEngine};
 
 #[derive(Clone)]
-pub struct MockAdapterBundle {
+pub struct BackendAdapterBundle {
     pub file_system: Arc<MockFileSystemAdapter>,
-    pub voice: Arc<MockVoiceAdapter>,
+    pub voice: Arc<BrowserVoiceAdapter>,
     pub privilege: Arc<MockPrivilegeAdapter>,
     pub package_manager: Arc<MockPackageManagerAdapter>,
     pub desktop: Arc<MockDesktopAdapter>,
     pub command: Arc<MockCommandAdapter>,
 }
 
-impl MockAdapterBundle {
+impl BackendAdapterBundle {
     fn bootstrap() -> Self {
         let mut directories = HashMap::new();
         directories.insert(
@@ -156,7 +156,7 @@ impl MockAdapterBundle {
                 directories,
                 allow_mutations: true,
             })),
-            voice: Arc::new(MockVoiceAdapter::new(MockVoiceConfig::default())),
+            voice: Arc::new(BrowserVoiceAdapter::new()),
             privilege: Arc::new(MockPrivilegeAdapter::new(MockPrivilegeConfig::default())),
             package_manager: Arc::new(MockPackageManagerAdapter::new(MockPackageManagerConfig {
                 packages: HashMap::new(),
@@ -241,7 +241,7 @@ impl MockAdapterBundle {
 
 #[derive(Clone)]
 pub struct BackendState {
-    pub adapters: MockAdapterBundle,
+    pub adapters: BackendAdapterBundle,
     pub audit_log: Arc<InMemoryAuditLog>,
     pub policy_engine: Arc<PolicyEngine>,
     pub conversation_runtime: Arc<ConversationRuntime>,
@@ -250,7 +250,7 @@ pub struct BackendState {
 
 impl BackendState {
     fn bootstrap() -> Self {
-        let adapters = MockAdapterBundle::bootstrap();
+        let adapters = BackendAdapterBundle::bootstrap();
         let audit_log = Arc::new(InMemoryAuditLog::new());
         let audit_sink: Arc<dyn AuditSink> = audit_log.clone();
         let policy_engine = Arc::new(PolicyEngine::new(PolicyConfig::default()));
@@ -278,7 +278,7 @@ impl BackendState {
 
     #[cfg(test)]
     fn bootstrap_with_config(config: OrchestrationConfig) -> Self {
-        let adapters = MockAdapterBundle::bootstrap();
+        let adapters = BackendAdapterBundle::bootstrap();
         let audit_log = Arc::new(InMemoryAuditLog::new());
         let audit_sink: Arc<dyn AuditSink> = audit_log.clone();
         let policy_engine = Arc::new(PolicyEngine::new(PolicyConfig::default()));
@@ -313,6 +313,7 @@ pub fn run() {
             ipc::start_listening,
             ipc::stop_listening,
             ipc::submit_transcript_chunk,
+            ipc::set_microphone_muted,
             ipc::interrupt_conversation,
             ipc::approve_action,
             ipc::deny_action,

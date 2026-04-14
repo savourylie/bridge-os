@@ -33,7 +33,7 @@ export type TimelineStep = { id: string, description: string, impact?: string, s
 
 export type TranscriptChunkInput = { text: string, isFinal: boolean, };
 
-export type ConversationSlice = { state: ConversationState, transcript: string, };
+export type ConversationSlice = { state: ConversationState, transcript: string, muted: boolean, };
 
 export type ExecutionProgress = { current: number, total: number, };
 

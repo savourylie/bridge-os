@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 
+import { useTauriSpeechRecognition } from "@/bridge/tauri-speech-recognition"
 import { tauriBridge } from "@/bridge/tauri"
 import { ApprovalCard } from "@/components/ui/approval-card"
 import { Button } from "@/components/ui/button"
@@ -58,7 +59,7 @@ const FLOW_LABELS: Record<DemoFlowType, string> = {
   guardedCommand: "Run Command",
 }
 
-const FLOW_TAURI_TRANSCRIPTS: Record<DemoFlowType, string> = {
+const FLOW_TAURI_PROMPTS: Record<DemoFlowType, string> = {
   organizeDownloads: "Organize my Downloads folder by file type",
   projectInspection: "Inspect my bridge-os project",
   guardedCommand: "Run git status in my bridge-os project",
@@ -179,6 +180,12 @@ export default function DemoPage({
   const [lastAction, setLastAction] = useState(
     "Auto-play will walk through the BridgeOS Downloads workflow.",
   )
+  useTauriSpeechRecognition({
+    enabled: isTauriMode,
+    conversation,
+    onStatusChange: setLastAction,
+    store,
+  })
 
   const displayExecutionState = getDisplayExecutionState(
     execution.state,
@@ -246,14 +253,11 @@ export default function DemoPage({
     setManualIndex(0)
 
     if (isTauriMode) {
-      const transcript = FLOW_TAURI_TRANSCRIPTS[selectedFlow]
-      setLastAction(`Starting ${FLOW_LABELS[selectedFlow]} backend flow — waiting for intent stabilization.`)
+      setLastAction(
+        `Microphone live. Say a request like "${FLOW_TAURI_PROMPTS[selectedFlow]}".`,
+      )
       void (async () => {
         await tauriBridge.startListening(store)
-        await tauriBridge.submitTranscriptChunk(
-          { text: transcript, isFinal: true },
-          store,
-        )
       })()
       return
     }
@@ -288,7 +292,9 @@ export default function DemoPage({
         await tauriBridge.stopListening(store)
         resetBridgeStore(store)
         await tauriBridge.startListening(store)
-        setLastAction("Undo complete — ready for a new command.")
+        setLastAction(
+          `Undo complete. Say another request like "${FLOW_TAURI_PROMPTS[selectedFlow]}".`,
+        )
       })()
       return
     }
@@ -306,17 +312,14 @@ export default function DemoPage({
     panelVisibilityRef.current = false
 
     if (isTauriMode) {
-      const transcript = FLOW_TAURI_TRANSCRIPTS[selectedFlow]
-      setLastAction(`Restarting ${FLOW_LABELS[selectedFlow]} backend flow.`)
+      setLastAction(`Restarting microphone listening for ${FLOW_LABELS[selectedFlow]}.`)
       void (async () => {
         await tauriBridge.stopListening(store)
         resetBridgeStore(store)
         await tauriBridge.startListening(store)
-        await tauriBridge.submitTranscriptChunk(
-          { text: transcript, isFinal: true },
-          store,
+        setLastAction(
+          `Microphone live. Say a request like "${FLOW_TAURI_PROMPTS[selectedFlow]}".`,
         )
-        setLastAction(`${FLOW_LABELS[selectedFlow]} backend flow restarted — waiting for intent stabilization.`)
       })()
       return
     }
@@ -382,7 +385,9 @@ export default function DemoPage({
 
     if (isTauriMode) {
       setBranch("approved")
-      setLastAction(`Approval granted. Backend is executing the ${FLOW_LABELS[selectedFlow]} task.`)
+      setLastAction(
+        `Approval granted. Backend is executing ${currentTask.title ?? "the current task"}.`,
+      )
       void tauriBridge.approveAction(store)
       return
     }
@@ -407,7 +412,9 @@ export default function DemoPage({
 
     if (isTauriMode) {
       setBranch("denied")
-      setLastAction("Approval denied. Backend task cancelled.")
+      setLastAction(
+        `Approval denied. ${currentTask.title ?? "The current task"} was cancelled.`,
+      )
       void tauriBridge.denyAction(store)
       return
     }
@@ -462,9 +469,17 @@ export default function DemoPage({
           <VoiceBar
             conversationState={conversation.state}
             amplitude={voiceAmplitude}
+            muted={conversation.muted}
             transcript={conversation.transcript}
             onMuteToggle={() => {
-              setLastAction("Mute is not connected in the mock demo.")
+              if (!isTauriMode) {
+                setLastAction("Mute is not connected in the mock demo.")
+                return
+              }
+
+              const nextMuted = !conversation.muted
+              setLastAction(nextMuted ? "Microphone muted." : "Microphone unmuted.")
+              void tauriBridge.setMicrophoneMuted(nextMuted, store)
             }}
           />
         </div>

@@ -110,6 +110,7 @@ function createInitialData(): BridgeStoreData {
     conversation: {
       state: conversationStateMachine.initialState,
       transcript: "",
+      muted: false,
     },
     execution: {
       state: executionStateMachine.initialState,

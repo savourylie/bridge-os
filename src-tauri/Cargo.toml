@@ -31,6 +31,7 @@ serde.workspace = true
 serde_json.workspace = true
 adapters = { path = "../crates/adapters" }
 audit_log = { path = "../crates/audit_log" }
+browser_voice_adapter = { path = "../crates/browser_voice_adapter" }
 conversation_runtime = { path = "../crates/conversation_runtime" }
 mock_adapters = { path = "../crates/mock_adapters" }
 orchestration_runtime = { path = "../crates/orchestration_runtime" }

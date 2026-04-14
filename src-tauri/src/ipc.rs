@@ -44,24 +44,7 @@ fn emit_channels<E: BridgeEventEmitter>(
 }
 
 fn current_conversation_slice(backend_state: &BackendState) -> ConversationSlice {
-    ConversationSlice {
-        state: backend_state.conversation_runtime.state(),
-        transcript: backend_state.conversation_runtime.transcript(),
-    }
-}
-
-fn listening_conversation_slice() -> ConversationSlice {
-    ConversationSlice {
-        state: task_models::ConversationState::Listening,
-        transcript: String::new(),
-    }
-}
-
-fn idle_conversation_slice() -> ConversationSlice {
-    ConversationSlice {
-        state: task_models::ConversationState::Idle,
-        transcript: String::new(),
-    }
+    backend_state.conversation_runtime.conversation_slice()
 }
 
 fn transcript_channels() -> [&'static str; 2] {
@@ -180,17 +163,30 @@ fn spawn_stabilization_timer<E: BridgeEventEmitter>(
     });
 }
 
+fn drain_voice_signals(backend_state: &BackendState) -> Result<(), String> {
+    while block_on(backend_state.conversation_runtime.consume_next_signal())
+        .map_err(|error| error.to_string())?
+        .is_some()
+    {}
+
+    Ok(())
+}
+
 fn submit_transcript_to_runtime(
     backend_state: &BackendState,
     chunk: TranscriptChunkInput,
 ) -> Result<OrchestrationOutcome, String> {
-    backend_state
-        .conversation_runtime
-        .submit_transcript_chunk(TranscriptChunk {
-            text: chunk.text,
-            is_final: chunk.is_final,
-        })
-        .map_err(|error| error.to_string())?;
+    let submitted = backend_state.adapters.voice.push_transcript_chunk(TranscriptChunk {
+        text: chunk.text,
+        is_final: chunk.is_final,
+    });
+    if !submitted {
+        return Ok(backend_state
+            .orchestration_runtime
+            .sync_conversation(current_conversation_slice(backend_state)));
+    }
+
+    drain_voice_signals(backend_state)?;
 
     Ok(backend_state
         .orchestration_runtime
@@ -211,7 +207,7 @@ pub async fn start_listening(
 
     let outcome = backend_state
         .orchestration_runtime
-        .start_session(listening_conversation_slice());
+        .start_session(current_conversation_slice(&backend_state));
     emit_channels(&app, &transcript_channels(), &outcome.state)?;
 
     Ok(outcome.state)
@@ -231,7 +227,7 @@ pub async fn stop_listening(
 
     let outcome = backend_state
         .orchestration_runtime
-        .stop_session(idle_conversation_slice());
+        .stop_session(current_conversation_slice(&backend_state));
     emit_channels(&app, &transcript_channels(), &outcome.state)?;
 
     Ok(outcome.state)
@@ -250,6 +246,24 @@ pub fn submit_transcript_chunk(
     if let Some(schedule) = outcome.stabilization.clone() {
         spawn_stabilization_timer(app, backend_state, schedule);
     }
+
+    Ok(outcome.state)
+}
+
+#[tauri::command]
+pub fn set_microphone_muted(
+    app: AppHandle,
+    state: State<'_, BackendState>,
+    muted: bool,
+) -> Result<SystemState, String> {
+    let backend_state = state.inner().clone();
+    backend_state.adapters.voice.set_muted(muted);
+    drain_voice_signals(&backend_state)?;
+
+    let outcome = backend_state
+        .orchestration_runtime
+        .sync_conversation(current_conversation_slice(&backend_state));
+    emit_channels(&app, &transcript_channels(), &outcome.state)?;
 
     Ok(outcome.state)
 }
@@ -371,7 +385,7 @@ pub fn undo_folder_organization(state: State<'_, BackendState>) -> Result<(), St
 #[cfg(test)]
 mod tests {
     use super::*;
-    use adapters::FileSystemAdapter;
+    use adapters::{FileSystemAdapter, VoiceAdapter};
 
     #[derive(Clone, Default)]
     struct MockEmitter {
@@ -409,6 +423,54 @@ mod tests {
         assert_eq!(outcome.state.current_task.state, task_models::TaskState::Understanding);
         assert!(outcome.state.current_task.plan.steps.is_empty());
         assert!(outcome.stabilization.is_some());
+        assert!(
+            block_on(backend_state.adapters.voice.next_signal())
+                .expect("drained voice queue")
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn set_microphone_muted_updates_shared_conversation_slice() {
+        let backend_state = BackendState::bootstrap_with_config(
+            orchestration_runtime::OrchestrationConfig {
+                intent_stability_ms: 0,
+            },
+        );
+        block_on(backend_state.conversation_runtime.start_listening()).expect("start listening");
+
+        backend_state.adapters.voice.set_muted(true);
+        drain_voice_signals(&backend_state).expect("drain mute signal");
+        let synced = backend_state
+            .orchestration_runtime
+            .sync_conversation(current_conversation_slice(&backend_state));
+
+        assert!(synced.state.conversation.muted);
+        assert!(backend_state.conversation_runtime.muted());
+    }
+
+    #[test]
+    fn muting_discards_pending_transcript_updates() {
+        let backend_state = BackendState::bootstrap_with_config(
+            orchestration_runtime::OrchestrationConfig {
+                intent_stability_ms: 0,
+            },
+        );
+        block_on(backend_state.conversation_runtime.start_listening()).expect("start listening");
+
+        assert!(backend_state.adapters.voice.push_transcript_chunk(TranscriptChunk {
+            text: "Computer".into(),
+            is_final: false,
+        }));
+        backend_state.adapters.voice.set_muted(true);
+        drain_voice_signals(&backend_state).expect("drain transcript and mute signals");
+
+        let synced = backend_state
+            .orchestration_runtime
+            .sync_conversation(current_conversation_slice(&backend_state));
+
+        assert_eq!(synced.state.conversation.transcript, "");
+        assert!(synced.state.conversation.muted);
     }
 
     #[test]

@@ -6,7 +6,7 @@ use std::sync::{Arc, RwLock};
 
 use adapters::{AdapterError, TranscriptChunk, VoiceAdapter, VoiceSignal};
 use audit_log::{AuditEvent, AuditScope, AuditSink};
-use task_models::ConversationState;
+use task_models::{ConversationSlice, ConversationState};
 
 pub use state_machine::can_transition;
 pub use turn_holding::{TurnHoldingAnalyzer, TurnHoldingAssessment, TurnHoldingConfig};
@@ -91,6 +91,7 @@ pub struct ConversationRuntime {
     turn_holding: TurnHoldingAnalyzer,
     state: RwLock<ConversationState>,
     transcript: RwLock<TranscriptBuffer>,
+    muted: RwLock<bool>,
 }
 
 impl ConversationRuntime {
@@ -101,6 +102,7 @@ impl ConversationRuntime {
             turn_holding: TurnHoldingAnalyzer::default(),
             state: RwLock::new(ConversationState::default()),
             transcript: RwLock::new(TranscriptBuffer::default()),
+            muted: RwLock::new(false),
         }
     }
 
@@ -113,6 +115,21 @@ impl ConversationRuntime {
             .read()
             .expect("conversation transcript lock poisoned")
             .display_text()
+    }
+
+    pub fn muted(&self) -> bool {
+        *self
+            .muted
+            .read()
+            .expect("conversation muted lock poisoned")
+    }
+
+    pub fn conversation_slice(&self) -> ConversationSlice {
+        ConversationSlice {
+            state: self.state(),
+            transcript: self.transcript(),
+            muted: self.muted(),
+        }
     }
 
     pub fn transition_to(
@@ -155,6 +172,16 @@ impl ConversationRuntime {
         });
     }
 
+    fn record_mute_update(&self, muted: bool) {
+        self.audit_log.record(AuditEvent {
+            scope: AuditScope::Conversation,
+            action: "microphone_muted".into(),
+            detail: Some(muted.to_string()),
+            task_id: None,
+            task_state: None,
+        });
+    }
+
     pub fn reset(&self) -> ConversationRuntimeResult<ConversationState> {
         self.transition_to(ConversationState::Idle)
     }
@@ -183,7 +210,14 @@ impl ConversationRuntime {
             VoiceSignal::WakeWordDetected => self.transition_to(ConversationState::Listening),
             VoiceSignal::TranscriptUpdated(chunk) => self.submit_transcript_chunk(chunk),
             VoiceSignal::Interrupted => self.interrupt(),
-            VoiceSignal::Muted(_) => Ok(self.state()),
+            VoiceSignal::Muted(muted) => {
+                *self
+                    .muted
+                    .write()
+                    .expect("conversation muted lock poisoned") = muted;
+                self.record_mute_update(muted);
+                Ok(self.state())
+            }
         }
     }
 
@@ -198,6 +232,10 @@ impl ConversationRuntime {
         &self,
         chunk: TranscriptChunk,
     ) -> ConversationRuntimeResult<ConversationState> {
+        if self.muted() {
+            return Ok(self.state());
+        }
+
         let normalized = chunk.text.trim();
         if normalized.is_empty() {
             return Ok(self.state());
@@ -394,6 +432,36 @@ mod tests {
             ConversationState::Interrupted
         );
         assert_eq!(runtime.reset().expect("reset"), ConversationState::Idle);
+    }
+
+    #[test]
+    fn runtime_tracks_muted_state_and_ignores_transcript_while_muted() {
+        let (runtime, _) = runtime_with_signals(Vec::new());
+
+        block_on(runtime.start_listening()).expect("start listening");
+        assert_eq!(runtime.conversation_slice().muted, false);
+
+        runtime
+            .handle_signal(VoiceSignal::Muted(true))
+            .expect("mute signal");
+        assert!(runtime.muted());
+
+        assert_eq!(
+            runtime
+                .submit_transcript_chunk(TranscriptChunk {
+                    text: "Computer".into(),
+                    is_final: false,
+                })
+                .expect("muted transcript no-op"),
+            ConversationState::Listening
+        );
+        assert_eq!(runtime.transcript(), "");
+
+        runtime
+            .handle_signal(VoiceSignal::Muted(false))
+            .expect("unmute signal");
+        assert!(!runtime.muted());
+        assert_eq!(runtime.conversation_slice().muted, false);
     }
 
     #[test]

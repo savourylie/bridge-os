@@ -1,0 +1,11 @@
+[package]
+name = "browser_voice_adapter"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+adapters = { path = "../adapters" }
+
+[dev-dependencies]
+futures = "0.3"

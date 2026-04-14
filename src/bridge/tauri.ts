@@ -33,6 +33,7 @@ export const TAURI_COMMANDS = {
   startListening: "start_listening",
   stopListening: "stop_listening",
   submitTranscriptChunk: "submit_transcript_chunk",
+  setMicrophoneMuted: "set_microphone_muted",
   interruptConversation: "interrupt_conversation",
   approveAction: "approve_action",
   denyAction: "deny_action",
@@ -98,6 +99,12 @@ export function createTauriBridge() {
       store: BridgeStoreApi = bridgeStore,
     ) {
       return invokeAndHydrate(TAURI_COMMANDS.submitTranscriptChunk, store, { chunk })
+    },
+    setMicrophoneMuted(
+      muted: boolean,
+      store: BridgeStoreApi = bridgeStore,
+    ) {
+      return invokeAndHydrate(TAURI_COMMANDS.setMicrophoneMuted, store, { muted })
     },
     interruptConversation(store: BridgeStoreApi = bridgeStore) {
       return invokeAndHydrate(TAURI_COMMANDS.interruptConversation, store)

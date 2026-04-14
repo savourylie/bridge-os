@@ -80,6 +80,7 @@ describe("bridge store", () => {
     expect(state.conversation).toEqual({
       state: "idle",
       transcript: "",
+      muted: false,
     })
     expect(state.execution).toEqual({
       state: "not_started",
@@ -474,6 +475,7 @@ describe("bridge store", () => {
     expect(state.conversation).toEqual({
       state: "idle",
       transcript: "",
+      muted: false,
     })
     expect(state.execution).toEqual({
       state: "not_started",
@@ -533,6 +535,7 @@ describe("selector hooks", () => {
     expect(conversation.current).toEqual({
       state: "listening",
       transcript: "Computer",
+      muted: false,
     })
     expect(currentTask.current.title).toBe("Organize Downloads")
     expect(currentTask.current.risk).toBe("medium")
