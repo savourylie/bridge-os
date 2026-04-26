@@ -1,7 +1,7 @@
 # [TICKET-031] Turn-Taking, Barge-In & Interruption
 
 ## Status
-`pending`
+`done`
 
 ## Dependencies
 - Requires: #029 ✅, #030 ✅
@@ -10,15 +10,15 @@
 Implement the full turn-taking and interruption system that makes BridgeOS feel like a natural conversational partner rather than a command-and-response interface. This ticket brings together STT and TTS with the conversation runtime's turn-holding logic, creating the full-duplex voice interaction described in the PRD. Users must be able to self-correct, trail off, interrupt the AI, and continue talking while the system works.
 
 ## Acceptance Criteria
-- [ ] Turn-holding: the system detects when the user is still speaking and does not act prematurely
-- [ ] Self-repair detection: phrases like "wait", "actually", "no", "I mean" keep the user's turn active and update the IntentBoard
-- [ ] Trailing conjunctions: "and", "then", "also" signal the user has more to say
-- [ ] Short pauses (< 1.5s) do not end the user's turn; long pauses (> 2s) do
-- [ ] Barge-in: user speaking during AI speech immediately stops TTS and returns turn to user
-- [ ] The system clearly indicates turn state in the VoiceBar: listening, holding, AI speaking, interrupted
-- [ ] Mid-task status query: user can ask "What are you doing now?" during execution — AI answers briefly in voice while execution continues
-- [ ] Redirection: user can say "Actually, do this instead" and the system pauses to capture new intent
-- [ ] Voice interaction continues independently of execution state (conversation does not block execution)
+- [x] Turn-holding: the system detects when the user is still speaking and does not act prematurely
+- [x] Self-repair detection: phrases like "wait", "actually", "no", "I mean" keep the user's turn active and update the IntentBoard
+- [x] Trailing conjunctions: "and", "then", "also" signal the user has more to say
+- [x] Short pauses (< 1.5s) do not end the user's turn; long pauses (> 2s) do
+- [x] Barge-in: user speaking during AI speech immediately stops TTS and returns turn to user
+- [x] The system clearly indicates turn state in the VoiceBar: listening, holding, AI speaking, interrupted
+- [x] Mid-task status query: user can ask "What are you doing now?" during execution — AI answers briefly in voice while execution continues
+- [x] Redirection: user can say "Actually, do this instead" and the system pauses to capture new intent
+- [x] Voice interaction continues independently of execution state (conversation does not block execution)
 
 ## Implementation Notes
 - Turn-holding heuristics from the conversation runtime (#021) are now driven by real STT input

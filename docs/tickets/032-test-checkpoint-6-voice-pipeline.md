@@ -1,10 +1,10 @@
 # [TICKET-032] TEST: Checkpoint 6 — Voice Pipeline
 
 ## Status
-`blocked`
+`pending`
 
 ## Dependencies
-- Requires: #031
+- Requires: #031 ✅
 
 ## Description
 This checkpoint verifies that the voice pipeline (STT + TTS + turn-taking) works as an integrated system, producing the natural conversational experience that defines BridgeOS. The system must feel responsive, must not act prematurely, and must support the full range of conversational behaviors (interruption, self-correction, mid-task queries).
