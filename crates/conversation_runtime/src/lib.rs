@@ -1,4 +1,5 @@
 mod state_machine;
+mod transcript_intent;
 mod turn_holding;
 
 use std::fmt;
@@ -9,6 +10,7 @@ use audit_log::{AuditEvent, AuditScope, AuditSink};
 use task_models::{ConversationSlice, ConversationState};
 
 pub use state_machine::can_transition;
+pub use transcript_intent::{TranscriptIntent, TranscriptIntentClassifier, TranscriptIntentConfig};
 pub use turn_holding::{TurnHoldingAnalyzer, TurnHoldingAssessment, TurnHoldingConfig};
 
 #[derive(Debug, Clone, PartialEq, Eq)]

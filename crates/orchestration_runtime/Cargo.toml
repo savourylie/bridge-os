@@ -6,6 +6,7 @@ edition.workspace = true
 [dependencies]
 adapters = { path = "../adapters" }
 audit_log = { path = "../audit_log" }
+conversation_runtime = { path = "../conversation_runtime" }
 policy_engine = { path = "../policy_engine" }
 task_models = { path = "../task_models" }
 

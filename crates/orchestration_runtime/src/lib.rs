@@ -14,6 +14,7 @@ use adapters::{
     PrivilegeAdapter, VoiceAdapter,
 };
 use audit_log::{AuditEvent, AuditScope, AuditSink};
+use conversation_runtime::{TranscriptIntent, TranscriptIntentClassifier};
 use executor::{execute_step, policy_action_for_step};
 use models::{ParsedIntentCandidate, PendingApproval, PlannedTask, RuntimeState};
 use parser::parse_transcript;
@@ -26,7 +27,7 @@ use projection::{
 use stabilizer::{is_due, schedule_stabilization};
 use task_models::{
     ApprovalFlow, ApprovalSnapshot, ConversationSlice, ExecutionSlice, ExecutionState, PlanState,
-    RiskLevel, StepState, SystemState, TaskSnapshot, TaskState,
+    RiskLevel, StepState, SystemState, TaskSnapshot, TaskState, TimelineStep,
 };
 
 #[derive(Clone)]
@@ -66,12 +67,19 @@ pub struct StabilizationSchedule {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct VoiceAnnouncement {
+    pub text: String,
+    pub task_id: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct OrchestrationOutcome {
     pub state: SystemState,
     pub state_changed: bool,
     pub stabilization: Option<StabilizationSchedule>,
     pub execution_token: Option<u64>,
     pub task_completed: bool,
+    pub voice_announcement: Option<VoiceAnnouncement>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -108,6 +116,7 @@ pub struct OrchestrationRuntime {
     config: OrchestrationConfig,
     state: RwLock<RuntimeState>,
     next_task_id: AtomicU64,
+    transcript_intent_classifier: TranscriptIntentClassifier,
 }
 
 impl OrchestrationRuntime {
@@ -121,6 +130,7 @@ impl OrchestrationRuntime {
             config,
             state: RwLock::new(RuntimeState::default()),
             next_task_id: AtomicU64::new(1),
+            transcript_intent_classifier: TranscriptIntentClassifier::default(),
         }
     }
 
@@ -231,12 +241,49 @@ impl OrchestrationRuntime {
             state.system_state.current_task.state,
             TaskState::Executing | TaskState::Paused
         ) {
-            let snapshot = snapshot_from_runtime_state(&state);
-            return OrchestrationOutcome {
-                state: snapshot,
-                state_changed: true,
-                ..OrchestrationOutcome::default()
-            };
+            let new_segment = transcript_tail(
+                &conversation.transcript,
+                state.transcript_offset_at_execution_start,
+            );
+            let intent = self.transcript_intent_classifier.classify(new_segment);
+            match intent {
+                TranscriptIntent::StatusQuery => {
+                    let announcement = build_status_announcement(&state.system_state);
+                    let task_id = state.system_state.current_task.id.clone();
+                    // Advance the classification offset past the status query so that
+                    // the next utterance starts from a clean slate rather than
+                    // re-matching this query's keywords on every subsequent observation.
+                    state.transcript_offset_at_execution_start =
+                        state.system_state.conversation.transcript.chars().count();
+                    let snapshot = snapshot_from_runtime_state(&state);
+                    return OrchestrationOutcome {
+                        state: snapshot,
+                        state_changed: true,
+                        voice_announcement: Some(VoiceAnnouncement {
+                            text: announcement,
+                            task_id,
+                        }),
+                        ..OrchestrationOutcome::default()
+                    };
+                }
+                TranscriptIntent::Redirect => {
+                    if state.system_state.execution.state == ExecutionState::Executing {
+                        state.active_execution_token = None;
+                        state.system_state.execution.state = ExecutionState::Paused;
+                        state.system_state.current_task.state = TaskState::Paused;
+                    }
+                    // Fall through to the normal observe path below to start a fresh
+                    // stabilization cycle for the new transcript.
+                }
+                TranscriptIntent::Normal => {
+                    let snapshot = snapshot_from_runtime_state(&state);
+                    return OrchestrationOutcome {
+                        state: snapshot,
+                        state_changed: true,
+                        ..OrchestrationOutcome::default()
+                    };
+                }
+            }
         }
 
         state.transcript_revision += 1;
@@ -916,6 +963,8 @@ fn begin_execution(state: &mut RuntimeState) -> u64 {
     state.system_state.current_task.state = TaskState::Executing;
     state.system_state.current_task.plan.plan_state = PlanState::Approved;
     state.system_state.execution.progress = derive_execution_progress(&state.system_state.timeline);
+    state.transcript_offset_at_execution_start =
+        state.system_state.conversation.transcript.chars().count();
     token
 }
 
@@ -945,6 +994,70 @@ fn snapshot_from_runtime_state(state: &RuntimeState) -> SystemState {
     let mut snapshot = state.system_state.clone();
     snapshot.execution.progress = derive_execution_progress(&snapshot.timeline);
     snapshot
+}
+
+fn build_status_announcement(state: &SystemState) -> String {
+    let title = state
+        .current_task
+        .title
+        .as_deref()
+        .filter(|t| !t.trim().is_empty())
+        .unwrap_or("the current task");
+
+    if state.execution.state == ExecutionState::Paused {
+        return format!("{title} is paused.");
+    }
+
+    let active_step = active_timeline_step(&state.timeline);
+    let progress = state.execution.progress.as_ref();
+
+    match (active_step, progress) {
+        (Some(step), Some(progress)) => format!(
+            "Working on {}. Currently {}, step {} of {}.",
+            title,
+            step.description.trim().to_lowercase(),
+            progress.current,
+            progress.total,
+        ),
+        (Some(step), None) => format!(
+            "Working on {}. Currently {}.",
+            title,
+            step.description.trim().to_lowercase(),
+        ),
+        (None, Some(progress)) => format!(
+            "Working on {}, step {} of {}.",
+            title, progress.current, progress.total
+        ),
+        (None, None) => format!("Working on {title}."),
+    }
+}
+
+fn transcript_tail(transcript: &str, char_offset: usize) -> &str {
+    if char_offset == 0 {
+        return transcript;
+    }
+    let mut chars = transcript.char_indices();
+    if let Some((byte_index, _)) = chars.nth(char_offset) {
+        &transcript[byte_index..]
+    } else {
+        ""
+    }
+}
+
+fn active_timeline_step(timeline: &[TimelineStep]) -> Option<&TimelineStep> {
+    timeline
+        .iter()
+        .find(|step| matches!(step.status, StepState::Running))
+        .or_else(|| {
+            timeline
+                .iter()
+                .find(|step| matches!(step.status, StepState::WaitingApproval))
+        })
+        .or_else(|| {
+            timeline
+                .iter()
+                .find(|step| matches!(step.status, StepState::Pending))
+        })
 }
 
 #[cfg(test)]
@@ -1320,5 +1433,138 @@ mod tests {
 
         assert_eq!(completion.changes.modified, 0);
         assert_eq!(completion.changes.network, Some(false));
+    }
+
+    fn drive_to_executing(runtime: &OrchestrationRuntime, transcript: &str) -> u64 {
+        runtime.start_session(ConversationSlice {
+            state: task_models::ConversationState::Listening,
+            transcript: String::new(),
+            muted: false,
+        });
+        let observed = runtime.observe_transcript(conversation(transcript));
+        let stabilized = runtime
+            .stabilize_if_due(observed.stabilization.expect("schedule").revision)
+            .expect("stabilize");
+
+        if let Some(token) = stabilized.execution_token {
+            // Advance one step so the runtime is mid-execution.
+            let advanced = block_on(runtime.execute_next_step(token)).expect("advance");
+            assert!(advanced.continue_running, "expected execution to keep running");
+            token
+        } else {
+            let approved = runtime.approve_pending().expect("approve pending");
+            let token = approved.execution_token.expect("execution token");
+            let advanced = block_on(runtime.execute_next_step(token)).expect("advance");
+            assert!(advanced.continue_running, "expected execution to keep running");
+            token
+        }
+    }
+
+    fn appended_conversation(initial: &str, addition: &str) -> ConversationSlice {
+        ConversationSlice {
+            state: task_models::ConversationState::IntentLocked,
+            transcript: format!("{initial} {addition}"),
+            muted: false,
+        }
+    }
+
+    #[test]
+    fn observe_transcript_status_query_during_executing_returns_announcement_unchanged_state() {
+        let runtime = runtime();
+        let initial = "Inspect my memfuse project";
+        let token = drive_to_executing(&runtime, initial);
+        let snapshot_before = runtime.system_state();
+        assert_eq!(snapshot_before.execution.state, ExecutionState::Executing);
+
+        let outcome = runtime
+            .observe_transcript(appended_conversation(initial, "What are you doing now?"));
+
+        let announcement = outcome.voice_announcement.expect("status announcement");
+        assert!(announcement.text.to_lowercase().contains("working"));
+        assert!(announcement.text.contains("step"));
+        assert!(outcome.stabilization.is_none());
+        assert!(outcome.execution_token.is_none());
+
+        let snapshot_after = runtime.system_state();
+        assert_eq!(snapshot_after.execution.state, ExecutionState::Executing);
+        assert_eq!(snapshot_after.current_task.state, TaskState::Executing);
+
+        // The execution token must remain valid so the running task can continue.
+        let advanced = block_on(runtime.execute_next_step(token)).expect("advance");
+        let _ = advanced;
+    }
+
+    #[test]
+    fn observe_transcript_redirect_during_executing_pauses_and_schedules_new_stabilization() {
+        let runtime = runtime();
+        let initial = "Inspect my memfuse project";
+        let token = drive_to_executing(&runtime, initial);
+
+        let outcome = runtime.observe_transcript(appended_conversation(
+            initial,
+            "Actually, organize my Downloads instead.",
+        ));
+
+        assert!(outcome.voice_announcement.is_none());
+        assert!(outcome.stabilization.is_some(), "redirect must schedule stabilization");
+        assert!(outcome.execution_token.is_none());
+
+        let snapshot_after = runtime.system_state();
+        assert_eq!(snapshot_after.execution.state, ExecutionState::NotStarted);
+        assert_eq!(snapshot_after.current_task.state, TaskState::Understanding);
+
+        // Old execution token is invalidated — execute_next_step must not advance further.
+        let advanced = block_on(runtime.execute_next_step(token)).expect("advance");
+        assert!(!advanced.continue_running);
+
+        // Stabilizing the new revision succeeds (the resulting plan is the parser's
+        // concern; the redirect contract here is just that a fresh cycle was scheduled).
+        let stabilized = runtime
+            .stabilize_if_due(outcome.stabilization.expect("schedule").revision)
+            .expect("stabilize");
+        assert!(stabilized.state_changed);
+    }
+
+    #[test]
+    fn observe_transcript_normal_chatter_during_executing_remains_inert() {
+        let runtime = runtime();
+        let initial = "Inspect my memfuse project";
+        let token = drive_to_executing(&runtime, initial);
+        let snapshot_before = runtime.system_state();
+
+        let outcome = runtime.observe_transcript(appended_conversation(initial, "keep going"));
+
+        assert!(outcome.voice_announcement.is_none());
+        assert!(outcome.stabilization.is_none());
+        let snapshot_after = runtime.system_state();
+        assert_eq!(
+            snapshot_before.current_task.state,
+            snapshot_after.current_task.state
+        );
+        assert_eq!(
+            snapshot_before.execution.state,
+            snapshot_after.execution.state
+        );
+
+        let advanced = block_on(runtime.execute_next_step(token)).expect("advance");
+        let _ = advanced;
+    }
+
+    #[test]
+    fn build_status_announcement_falls_back_when_no_progress() {
+        let mut state = SystemState::default();
+        state.current_task.title = Some("Inspect bridge-os".into());
+        state.execution.state = ExecutionState::Executing;
+        let announcement = build_status_announcement(&state);
+        assert!(announcement.contains("Inspect bridge-os"));
+    }
+
+    #[test]
+    fn build_status_announcement_reports_paused_state() {
+        let mut state = SystemState::default();
+        state.current_task.title = Some("Inspect bridge-os".into());
+        state.execution.state = ExecutionState::Paused;
+        let announcement = build_status_announcement(&state);
+        assert!(announcement.contains("paused"));
     }
 }

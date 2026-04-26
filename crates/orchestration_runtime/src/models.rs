@@ -104,4 +104,9 @@ pub(crate) struct RuntimeState {
     pub planned_task: Option<PlannedTask>,
     pub active_execution_token: Option<u64>,
     pub next_execution_token: u64,
+    /// Char-count cursor into `system_state.conversation.transcript`; anything beyond
+    /// this offset is treated as the new utterance for status-query / redirect
+    /// classification. Set at execution start (`begin_execution`) and advanced past
+    /// each consumed status query so subsequent utterances classify cleanly.
+    pub transcript_offset_at_execution_start: usize,
 }

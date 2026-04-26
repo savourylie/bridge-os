@@ -45,3 +45,5 @@ export type TaskSnapshot = { id?: string, title?: string, summary?: string, risk
 
 export type SystemState = { conversation: ConversationSlice, execution: ExecutionSlice, currentTask: TaskSnapshot, approval: ApprovalSnapshot, timeline: Array<TimelineStep>, };
 
+export type VoiceAnnouncementPayload = { text: string, taskId?: string, };
+

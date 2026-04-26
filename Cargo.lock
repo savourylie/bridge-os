@@ -2430,6 +2430,7 @@ dependencies = [
  "adapters",
  "async-trait",
  "audit_log",
+ "conversation_runtime",
  "futures",
  "policy_engine",
  "task_models",

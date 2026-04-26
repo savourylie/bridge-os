@@ -294,6 +294,16 @@ pub struct TaskSnapshot {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(rename_all = "camelCase")]
+pub struct VoiceAnnouncementPayload {
+    pub text: String,
+    #[ts(optional)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub task_id: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
 pub struct SystemState {
     #[serde(default)]
     pub conversation: ConversationSlice,
@@ -347,6 +357,7 @@ pub fn ipc_typescript() -> String {
     append_decl::<ApprovalSnapshot>(&mut output, &config);
     append_decl::<TaskSnapshot>(&mut output, &config);
     append_decl::<SystemState>(&mut output, &config);
+    append_decl::<VoiceAnnouncementPayload>(&mut output, &config);
 
     output
 }

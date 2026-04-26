@@ -4,7 +4,9 @@ use std::time::Duration;
 use adapters::TranscriptChunk;
 use futures::executor::block_on;
 use orchestration_runtime::{OrchestrationOutcome, StabilizationSchedule};
-use task_models::{ConversationSlice, SystemState, TranscriptChunkInput};
+use task_models::{
+    ConversationSlice, SystemState, TranscriptChunkInput, VoiceAnnouncementPayload,
+};
 use tauri::{AppHandle, State};
 
 use crate::BackendState;
@@ -17,9 +19,14 @@ pub const EXECUTION_STATE_CHANGED: &str = "execution_state_changed";
 pub const STEP_UPDATED: &str = "step_updated";
 pub const APPROVAL_REQUESTED: &str = "approval_requested";
 pub const TASK_COMPLETED: &str = "task_completed";
+pub const VOICE_ANNOUNCEMENT: &str = "voice_announcement";
 
 trait BridgeEventEmitter: Clone + Send + Sync + 'static {
     fn emit_system_state(&self, event_name: &str, state: &SystemState) -> Result<(), String>;
+    fn emit_voice_announcement(
+        &self,
+        payload: &VoiceAnnouncementPayload,
+    ) -> Result<(), String>;
 }
 
 impl BridgeEventEmitter for AppHandle {
@@ -27,6 +34,16 @@ impl BridgeEventEmitter for AppHandle {
         use tauri::Emitter;
 
         self.emit(event_name, state.clone())
+            .map_err(|error| error.to_string())
+    }
+
+    fn emit_voice_announcement(
+        &self,
+        payload: &VoiceAnnouncementPayload,
+    ) -> Result<(), String> {
+        use tauri::Emitter;
+
+        self.emit(VOICE_ANNOUNCEMENT, payload.clone())
             .map_err(|error| error.to_string())
     }
 }
@@ -279,7 +296,30 @@ pub fn submit_transcript_chunk(
 ) -> Result<SystemState, String> {
     let backend_state = state.inner().clone();
     let outcome = submit_transcript_to_runtime(&backend_state, chunk)?;
-    emit_channels(&app, &transcript_channels(), &outcome.state)?;
+
+    // A redirect-classified transcript pauses execution and schedules a fresh
+    // stabilization; emit execution + intent channels alongside the transcript
+    // channels so the frontend reflects the reset immediately.
+    let channels: &[&str] = if outcome.stabilization.is_some() {
+        &[
+            CONVERSATION_STATE_CHANGED,
+            TRANSCRIPT_UPDATED,
+            INTENT_UPDATED,
+            EXECUTION_STATE_CHANGED,
+            STEP_UPDATED,
+        ]
+    } else {
+        &[CONVERSATION_STATE_CHANGED, TRANSCRIPT_UPDATED]
+    };
+    emit_channels(&app, channels, &outcome.state)?;
+
+    if let Some(announcement) = outcome.voice_announcement.as_ref() {
+        let payload = VoiceAnnouncementPayload {
+            text: announcement.text.clone(),
+            task_id: announcement.task_id.clone(),
+        };
+        app.emit_voice_announcement(&payload)?;
+    }
 
     if let Some(schedule) = outcome.stabilization.clone() {
         spawn_stabilization_timer(app, backend_state, schedule);
@@ -428,6 +468,7 @@ mod tests {
     #[derive(Clone, Default)]
     struct MockEmitter {
         emitted: std::sync::Arc<std::sync::Mutex<Vec<String>>>,
+        voice_announcements: std::sync::Arc<std::sync::Mutex<Vec<VoiceAnnouncementPayload>>>,
     }
 
     impl BridgeEventEmitter for MockEmitter {
@@ -436,6 +477,21 @@ mod tests {
                 .lock()
                 .expect("mock emitter lock poisoned")
                 .push(event_name.into());
+            Ok(())
+        }
+
+        fn emit_voice_announcement(
+            &self,
+            payload: &VoiceAnnouncementPayload,
+        ) -> Result<(), String> {
+            self.emitted
+                .lock()
+                .expect("mock emitter lock poisoned")
+                .push(VOICE_ANNOUNCEMENT.into());
+            self.voice_announcements
+                .lock()
+                .expect("mock emitter voice announcements lock poisoned")
+                .push(payload.clone());
             Ok(())
         }
     }
@@ -1005,6 +1061,120 @@ mod tests {
         assert!(
             screenshots_entries.is_empty(),
             "Screenshots subdirectory should be empty after undo"
+        );
+    }
+
+    fn drive_to_executing_via_runtime(backend_state: &BackendState, transcript: &str) -> u64 {
+        block_on(backend_state.conversation_runtime.start_listening()).expect("start listening");
+
+        let observed = submit_transcript_to_runtime(
+            backend_state,
+            TranscriptChunkInput {
+                text: transcript.into(),
+                is_final: true,
+            },
+        )
+        .expect("submit transcript");
+        let stabilized = backend_state
+            .orchestration_runtime
+            .stabilize_if_due(observed.stabilization.expect("schedule").revision)
+            .expect("stabilize");
+
+        let token = if let Some(token) = stabilized.execution_token {
+            token
+        } else {
+            let approved = backend_state
+                .orchestration_runtime
+                .approve_pending()
+                .expect("approve pending");
+            approved.execution_token.expect("execution token")
+        };
+
+        let advanced = block_on(backend_state.orchestration_runtime.execute_next_step(token))
+            .expect("advance");
+        assert!(advanced.continue_running, "expected mid-execution state");
+        token
+    }
+
+    #[test]
+    fn mid_task_status_query_emits_voice_announcement_channel() {
+        let backend_state = BackendState::bootstrap_with_config(
+            orchestration_runtime::OrchestrationConfig {
+                intent_stability_ms: 0,
+            },
+        );
+        let emitter = MockEmitter::default();
+        let _token = drive_to_executing_via_runtime(&backend_state, "Inspect my bridge-os project");
+
+        let outcome = submit_transcript_to_runtime(
+            &backend_state,
+            TranscriptChunkInput {
+                text: "What are you doing now?".into(),
+                is_final: true,
+            },
+        )
+        .expect("submit status query");
+
+        if let Some(announcement) = outcome.voice_announcement.as_ref() {
+            let payload = VoiceAnnouncementPayload {
+                text: announcement.text.clone(),
+                task_id: announcement.task_id.clone(),
+            };
+            emitter
+                .emit_voice_announcement(&payload)
+                .expect("emit announcement");
+        }
+
+        let announcements = emitter
+            .voice_announcements
+            .lock()
+            .expect("voice announcements lock")
+            .clone();
+        assert_eq!(announcements.len(), 1, "expected one announcement");
+        assert!(
+            announcements[0].text.to_lowercase().contains("working"),
+            "expected status text to describe ongoing work, got: {}",
+            announcements[0].text
+        );
+
+        let state = backend_state.orchestration_runtime.system_state();
+        assert_eq!(
+            state.execution.state,
+            task_models::ExecutionState::Executing,
+            "execution must continue during status query"
+        );
+        assert_eq!(state.current_task.state, task_models::TaskState::Executing);
+    }
+
+    #[test]
+    fn redirect_mid_execution_pauses_and_schedules_new_stabilization() {
+        let backend_state = BackendState::bootstrap_with_config(
+            orchestration_runtime::OrchestrationConfig {
+                intent_stability_ms: 0,
+            },
+        );
+        let _token = drive_to_executing_via_runtime(&backend_state, "Inspect my bridge-os project");
+
+        let outcome = submit_transcript_to_runtime(
+            &backend_state,
+            TranscriptChunkInput {
+                text: "Actually, organize my Downloads instead.".into(),
+                is_final: true,
+            },
+        )
+        .expect("submit redirect");
+
+        assert!(
+            outcome.voice_announcement.is_none(),
+            "redirect should not emit a status announcement"
+        );
+        assert!(
+            outcome.stabilization.is_some(),
+            "redirect must schedule a new stabilization cycle"
+        );
+        assert_eq!(
+            outcome.state.current_task.state,
+            task_models::TaskState::Understanding
         );
     }
 }

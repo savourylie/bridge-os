@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react"
 
-import { tauriBridge } from "@/bridge/tauri"
+import { onVoiceAnnouncement, tauriBridge } from "@/bridge/tauri"
 import {
   clearActiveSpeechSession,
   setActiveSpeechSession,
@@ -53,6 +53,7 @@ type SpeechMilestone =
   | "approval"
   | "completion"
   | "failure"
+  | "status_response"
 
 interface SpeechRequest {
   key: string
@@ -236,6 +237,7 @@ export function useTauriSpeechSynthesis({
   const onStatusChangeRef = useRef(onStatusChange)
   const unsupportedReportedRef = useRef(false)
   const cancelReasonRef = useRef<SpeechCancelReason | null>(null)
+  const announcementCounterRef = useRef(0)
 
   storeRef.current = store
   onStatusChangeRef.current = onStatusChange
@@ -367,6 +369,41 @@ export function useTauriSpeechSynthesis({
     enabled,
     execution,
   ])
+
+  useEffect(() => {
+    if (!enabled) {
+      return
+    }
+
+    const unsubscribe = onVoiceAnnouncement(({ text, taskId }) => {
+      if (!text.trim()) {
+        return
+      }
+
+      announcementCounterRef.current += 1
+      const request: SpeechRequest = {
+        key: `${taskId ?? "global"}:status_response:${announcementCounterRef.current}`,
+        milestone: "status_response",
+        priority: 2,
+        taskId: taskId ?? "global",
+        text,
+      }
+
+      if (activeRequestRef.current === null) {
+        startRequest(request)
+        return
+      }
+
+      if (
+        pendingRequestRef.current === null ||
+        shouldReplaceQueuedRequest(pendingRequestRef.current, request)
+      ) {
+        pendingRequestRef.current = request
+      }
+    })
+
+    return unsubscribe
+  }, [enabled])
 
   useEffect(() => {
     return () => {

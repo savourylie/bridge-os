@@ -7,7 +7,28 @@ import {
   type BridgeStoreApi,
   type SystemState,
 } from "@/state"
-import type { TranscriptChunkInput } from "@/state/ipc-types"
+import type {
+  TranscriptChunkInput,
+  VoiceAnnouncementPayload,
+} from "@/state/ipc-types"
+
+export const VOICE_ANNOUNCEMENT_CHANNEL = "voice_announcement"
+
+type VoiceAnnouncementHandler = (payload: VoiceAnnouncementPayload) => void
+const voiceAnnouncementHandlers = new Set<VoiceAnnouncementHandler>()
+
+export function onVoiceAnnouncement(handler: VoiceAnnouncementHandler) {
+  voiceAnnouncementHandlers.add(handler)
+  return () => {
+    voiceAnnouncementHandlers.delete(handler)
+  }
+}
+
+function dispatchVoiceAnnouncement(payload: VoiceAnnouncementPayload) {
+  for (const handler of voiceAnnouncementHandlers) {
+    handler(payload)
+  }
+}
 
 interface TauriGlobal {
   isTauri?: boolean
@@ -76,18 +97,25 @@ export function createTauriBridge() {
       return systemState
     },
     async subscribe(store: BridgeStoreApi = bridgeStore): Promise<UnlistenFn> {
-      const unlisteners = await Promise.all(
+      const systemStateUnlisteners = await Promise.all(
         TAURI_EVENT_CHANNELS.map((eventName) =>
           listen<SystemState>(eventName, ({ payload }) => {
             replaceFromSystemState(payload, store)
           }),
         ),
       )
+      const voiceAnnouncementUnlisten = await listen<VoiceAnnouncementPayload>(
+        VOICE_ANNOUNCEMENT_CHANNEL,
+        ({ payload }) => {
+          dispatchVoiceAnnouncement(payload)
+        },
+      )
 
       return () => {
-        for (const unlisten of unlisteners) {
+        for (const unlisten of systemStateUnlisteners) {
           unlisten()
         }
+        voiceAnnouncementUnlisten()
       }
     },
     startListening(store: BridgeStoreApi = bridgeStore) {
